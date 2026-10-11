@@ -2,7 +2,7 @@
 
 The reporter compiles `case.json` and the `notes/*.md` authored by the investigator. **It does not generate conclusions.** Fill the exact note files below (Markdown allowed) after studying source Evidence. Empty notes remain explicit gaps in the rendered report and fail strict validation.
 
-- `notes/overview.md`: decisive answer in 3–7 factual sentences; identification of the target, confidence and practical significance. Do not write an empty flourish.
+- `notes/overview.md`: decisive answer in 3-7 factual sentences; identification of the target, confidence and practical significance. Do not write an empty flourish.
 - `notes/architecture.md`: investigated components, entry points, dependencies, trust boundaries and uncovered subsystems. Prefer a short plain-text flow diagram with evidence IDs on edges.
 - `notes/trace.md`: trigger → entry → control/data flow → boundary → effect; for each hop include claim ID, source ID and exact locator. If target is non-interactive, use input/entry/method/observable side effect.
 - `notes/verification.md`: actual commands, test environment, before/after results, negative controls, where assertions passed/failed, and independent reproduction steps. Differentiate performed tests from proposed experiments.

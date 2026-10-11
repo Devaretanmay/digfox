@@ -188,7 +188,7 @@ def issues(root:Path, obj:dict)->list[str]:
     if obj['stages']['S01']['status']!='done': problems.append('S01 must finish as done')
     if obj['stages']['S12']['status']!='done': problems.append('S12 audit must finish as done')
     if not any(obj['stages'][sid]['status']=='done' for sid in ('S03','S04','S05','S06','S07','S08','S09','S10','S13')):
-        problems.append('No completed domain investigation (S03–S10 or S13)')
+        problems.append('No completed domain investigation (S03-S10 or S13)')
     for name in NOTES_REQUIRED:
         content=note_contents(root,name)
         if len(content)<30 or content.startswith('TODO') or content.startswith('[Fill'):
@@ -218,7 +218,7 @@ def esc(s):
 
 def generate(root:Path,obj:dict, problems:list[str])->str:
     blocked=sum(v['status']=='blocked' for v in obj['stages'].values())
-    state = 'STRUCTURALLY COMPLETE' if not problems and not blocked else ('QUALIFIED — BLOCKED CAPABILITIES' if not problems else 'INCOMPLETE — EVIDENCE GAPS')
+    state = 'STRUCTURALLY COMPLETE' if not problems and not blocked else ('QUALIFIED - BLOCKED CAPABILITIES' if not problems else 'INCOMPLETE - EVIDENCE GAPS')
     out=['# Reverse-engineering investigation','',f'**Assessment:** {state}  ',
          f'**Target:** `{obj["target"]}`  ', f'**Question:** {obj["question"]}  ',
          f'**Case created (UTC):** {obj["created_at"]}  ',
@@ -252,7 +252,7 @@ def generate(root:Path,obj:dict, problems:list[str])->str:
           '| --- | --- | --- | --- | --- |']
     for c in obj['claims']:
         out.append(f'| {c["id"]} | {esc(c["class"])} | {esc(c["text"])} | {", ".join(c["evidence"]) or "None (hypothesis)"} | {esc(c["locator"])} |')
-    if not obj['claims']: out.append('| — | — | *No supported findings registered* | — | — |')
+    if not obj['claims']: out.append('| - | - | *No supported findings registered* | - | - |')
     out+=['','## Source register','', '| Source | Stage | Type | File | Source locator | SHA-256 |',
           '| --- | --- | --- | --- | --- | --- |']
     for e in obj['evidence']:
@@ -278,7 +278,7 @@ def check(args):
     blocked=[sid for sid,s in obj['stages'].items() if s['status']=='blocked']
     print(f'Case: {root}\nStages: {len(obj["stages"])}; sources: {len(obj["evidence"])}; claims: {len(obj["claims"])}')
     for line in problems: print(f'ISSUE: {line}')
-    for sid in blocked: print(f'BLOCKED: {sid} — {obj["stages"][sid]["reason"]}')
+    for sid in blocked: print(f'BLOCKED: {sid} - {obj["stages"][sid]["reason"]}')
     if not problems and not blocked: print('PASS: all structural completion gates satisfied (not a substantive truth audit).')
     elif not problems: print('QUALIFIED: structural gates satisfied, but blocked capabilities remain.')
     else: print(f'INCOMPLETE: {len(problems)} structural issue(s).')

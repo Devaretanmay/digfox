@@ -16,7 +16,7 @@ You are the **investigator**, not a checklist reader. Own the investigation from
 
 2. **Create the case.** From this skill directory run `python3 scripts/case.py init --target '<absolute path or URL>' --question '<question>' --out '<case directory>'`. Keep the original input untouched. The output directory is the single source of truth: `case.json`, `evidence/`, `notes/`, `REPORT.md`. Record file digests and directory manifests as applicable. A URL is not a hashed local file; record URL and observation time.
 
-3. **Build the route.** Read `references/capabilities.md`. Assess all **13 capabilities**; apply every relevant one, and give a precise reason for each inapplicable one. S01 scope and S02 artifact mapping normally apply; S12 evidence audit always applies. At least one domain-specific investigation (S03–S10 or S13) must be attempted unless this is solely a report audit. A hardware, native, Electron, web or mobile target will not use every capability. Run `python3 scripts/case.py stage <case-dir> <ID> <status> --reason '<why>'` to update the ledger. Use `blocked` for missing tools/permission, never `not-applicable`.
+3. **Build the route.** Read `references/capabilities.md`. Assess all **13 capabilities**; apply every relevant one, and give a precise reason for each inapplicable one. S01 scope and S02 artifact mapping normally apply; S12 evidence audit always applies. At least one domain-specific investigation (S03-S10 or S13) must be attempted unless this is solely a report audit. A hardware, native, Electron, web or mobile target will not use every capability. Run `python3 scripts/case.py stage <case-dir> <ID> <status> --reason '<why>'` to update the ledger. Use `blocked` for missing tools/permission, never `not-applicable`.
 
 4. **Prove, don't narrate.** Read `references/evidence.md`. Check actual `rea --help`, `rea capabilities --json`, `rea providers --json` **only when the investigation needs REA**; prefer a registered, working REA MCP endpoint when available. Use its advertised schemas, not assumed flags. Start with cheap inspection, then follow narrow seeds through callers/callees, modules, routes, IPC, imports and side effects. For each decisive finding, save the complete raw source under `evidence/`, register it in the ledger, and attach a precise locator (byte offset, address, function, record ordinal, JSON pointer, page, selector, file+line, or time interval). Separate direct observations from static inference, runtime inference and open hypotheses. Stop at an unverified boundary; write the next experiment rather than connecting fictional edges.
 
@@ -32,9 +32,9 @@ The case is **complete** only when (a) all 13 stages have `done`, `not-applicabl
 
 ## Invocation examples
 
-- `/rea-investigate /Applications/Example.app — trace the Export action from UI to file output and report all evidence.`
-- `/rea-investigate ./app.asar — determine how session search is implemented. Static only.`
-- `/rea-investigate old.apk new.apk — compare sign-in behavior and generate a version-diff report.`
+- `/rea-investigate /Applications/Example.app - trace the Export action from UI to file output and report all evidence.`
+- `/rea-investigate ./app.asar - determine how session search is implemented. Static only.`
+- `/rea-investigate old.apk new.apk - compare sign-in behavior and generate a version-diff report.`
 
 ## Boundaries
 

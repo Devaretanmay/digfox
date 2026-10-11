@@ -1,4 +1,4 @@
-# Example excerpt — fictional demonstration, not collected evidence
+# Example excerpt - fictional demonstration, not collected evidence
 
 **Question:** What does the Export button do?
 

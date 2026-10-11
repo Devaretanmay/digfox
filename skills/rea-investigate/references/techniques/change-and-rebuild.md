@@ -2,7 +2,7 @@
 
 Load when S10 or S11 is relevant. These are separate gates: change investigation does not authorize writing code, and a request to understand does not authorize cloning.
 
-## S10 — Build/version comparison
+## S10 - Build/version comparison
 
 1. Hash both exact artifacts, record platform, version, architecture, signing context and release origin. Do not pair a release app with an unrelated developer build.
 2. Produce **independent** complete analysis Evidence for each version. For JS:
@@ -18,7 +18,7 @@ Load when S10 or S11 is relevant. These are separate gates: change investigation
 4. For .NET, use installed `rea compare-managed-members` contract; token integers are not stable identities. For native, inspect byte and control-flow differences with matching provider and architecture, not semantic guesses.
 5. If the result claims runtime behavioral change, reproduce a controlled scenario separately on both builds (only when authorized) and compare the observed states.
 
-## S11 — Rebuild (explicit instruction only)
+## S11 - Rebuild (explicit instruction only)
 
 1. Write an **observable contract** from verified behavior: public interface, inputs, outputs, errors, permission/state transitions, timing expectations. Mark inferred and unobserved cases in a distinct column.
 2. Build regression cases covering ordinary, boundary, malformed, stateful, failure and timing paths. Where original execution is approved, retain its fixtures and observations separately from new tests.

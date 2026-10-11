@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner.jpg" alt="REA Investigator — One skill. End-to-end reverse engineering." width="100%">
+  <img src="assets/banner.jpg" alt="REA Investigator: One skill. End-to-end reverse engineering." width="100%">
 </p>
 
 <p align="center">
@@ -13,40 +13,40 @@
 
 # REA Investigator
 
-**One command → a planned investigation across 13 capabilities → an evidence-backed technical report.**
+**One command -> a planned investigation across 13 capabilities -> an evidence-backed technical report.**
 
 **REA Investigator** is a unified, production-grade **Agent Skill** (`rea-investigate`) compatible with Claude Code, Codex, Antigravity, and tools supporting the open Agent Skills specification. 
 
-Instead of juggling fragmented prompts or shallow summaries, REA Investigator equips coding agents with a structured 4-phase lifecycle: **Plan**, **Trace**, **Verify**, and **Report** — backed by an immutable SHA-256 evidence ledger and adversarial auditing gates.
+Instead of juggling fragmented prompts or shallow summaries, REA Investigator equips coding agents with a structured 4-phase lifecycle: **Plan**, **Trace**, **Verify**, and **Report**, backed by an immutable SHA-256 evidence ledger and adversarial auditing gates.
 
 ---
 
-## ⚡ Quick Invocation
+## Quick Invocation
 
 Once installed, invoke the skill directly inside your agent:
 
 ```bash
-/rea-investigate /Applications/Example.app — explain exactly how the Export PDF button works, from click to output file, and produce a report.
+/rea-investigate /Applications/Example.app: explain exactly how the Export PDF button works, from click to output file, and produce a report.
 ```
 
 Or target specific bundles, builds, or network flows:
 
 ```bash
 # Static bundle inspection
-/rea-investigate ./app.asar — trace local search end to end. Static only, no execution.
+/rea-investigate ./app.asar: trace local search end to end. Static only, no execution.
 
-# Version & release comparison
-/rea-investigate ./v1.0.apk ./v2.0.apk — compare the authentication feature and document evidence.
+# Version and release comparison
+/rea-investigate ./v1.0.apk ./v2.0.apk: compare the authentication feature and document evidence.
 
 # Web application UI interaction trace
-/rea-investigate https://example.test — investigate the public request flow with browser observation.
+/rea-investigate https://example.test: investigate the public request flow with browser observation.
 ```
 
 The agent autonomously categorizes the target, evaluates the 13 capabilities, invokes local REA/system tools, logs cryptographic evidence hashes, challenges conclusions adversarially, and renders a comprehensive `REPORT.md`.
 
 ---
 
-## 🧭 Investigation Lifecycle
+## Investigation Lifecycle
 
 ```text
                REQUEST: /rea-investigate <target>
@@ -58,7 +58,7 @@ The agent autonomously categorizes the target, evaluates the 13 capabilities, in
 └──────────────────────────────┬──────────────────────────────┘
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 2. TRACE: Route to Applicable Capabilities (S03–S10, S13)   │
+│ 2. TRACE: Route to Applicable Capabilities (S03-S10, S13)   │
 │    JS/Electron · Web UI · Network/HAR · Native Mach-O/ELF   │
 │    Android APK · .NET PE · Process capture · Build diff     │
 └──────────────────────────────┬──────────────────────────────┘
@@ -77,7 +77,7 @@ The agent autonomously categorizes the target, evaluates the 13 capabilities, in
 
 ---
 
-## 📦 Installation
+## Installation
 
 Install `rea-investigate` into your local project environment with a single command:
 
@@ -106,7 +106,7 @@ rea providers --json
 
 ---
 
-## 🔍 The 13 Capabilities
+## The 13 Capabilities
 
 Every investigation rigorously assesses all 13 capabilities, categorizing each as `done`, `not-applicable` (with concrete rationale), or `blocked` (with missing prerequisites):
 
@@ -128,7 +128,7 @@ Every investigation rigorously assesses all 13 capabilities, categorizing each a
 
 ---
 
-## 🛡️ Case Ledger & Strict Audit
+## Case Ledger and Strict Audit
 
 REA Investigator includes a built-in standard-library case ledger CLI (`case.py`) to enforce scientific rigor:
 
@@ -155,7 +155,7 @@ The strict check automatically fails if:
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```text
 rea-investigate/
@@ -179,12 +179,12 @@ rea-investigate/
 │           ├── case.py                   (Deterministic case ledger & auditor)
 │           └── rea_payload.py            (JSON payload schemas)
 └── tests/
-    └── test_pack.py                      (Unit test suite — 12 tests)
+    └── test_pack.py                      (Unit test suite: 12 tests)
 ```
 
 ---
 
-## 🧪 Testing
+## Testing
 
 Run the local test suite using Python standard library:
 
@@ -196,9 +196,9 @@ All 12 tests validate case initialization, evidence hashing, integrity verificat
 
 ---
 
-## ⚖️ Boundaries & Ethics
+## Boundaries and Ethics
 
 - Analyze **only** software, captures, and systems you own or have explicit authorization to inspect.
 - Never bypass technical protections, extract third-party secrets, or exfiltrate credentials.
-- Process capture executes with local user privileges — sandbox and isolate when needed.
+- Process capture executes with local user privileges; sandbox and isolate when needed.
 - REA Investigator is independently authored and not officially affiliated with or endorsed by upstream tool authors.

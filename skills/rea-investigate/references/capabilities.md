@@ -20,7 +20,7 @@ This is **one investigation workflow**, not thirteen invocable skills. Evaluate 
 
 ## Dispatch rule
 
-1. Classify target and question, then assign the **minimum complete** branch graph. S01 → S02 → all relevant modality stages (S03–S10/S13) → optional S11 → S12 → report.
+1. Classify target and question, then assign the **minimum complete** branch graph. S01 → S02 → all relevant modality stages (S03-S10/S13) → optional S11 → S12 → report.
 2. If tracing reveals a new boundary (Electron native addon, APK JNI, .NET P/Invoke, web API), **reopen** the corresponding stage; record that handoff in notes. No automatic traversal beyond authorization.
 3. Use S04 and S09 only when actual execution is required and approved, never as casual dependency checks. Use S05 for an available/authorized capture, not imagined network events.
 4. When the user says *everything*, examine all reachable and authorized subsystems relevant to the declared question. The 13 checkboxes are **types of investigation**, not an assertion that every app has all thirteen kinds of code.
