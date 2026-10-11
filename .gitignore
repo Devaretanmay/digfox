@@ -1,0 +1,19 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Case output directories & temporary artifacts
+cases/
+*.tmp
+.DS_Store
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Editor / IDE artifacts
+.vscode/
+.idea/
+*.swp
