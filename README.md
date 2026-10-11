@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner.jpg" alt="REA Investigator: One skill. End-to-end reverse engineering." width="100%">
+  <img src="assets/banner.jpg" alt="REA: Investigate Anything" width="100%">
 </p>
 
 <p align="center">
