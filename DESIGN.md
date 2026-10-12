@@ -31,4 +31,4 @@
 
 **Not yet verified:** actual model adherence to Proofwork instructions across clients, throughput with large repositories, cross-model quality gains, security of arbitrary user-supplied REA tools, production concurrency or external side effects.
 
-**Next tests before a 'production-grade' claim:** compare baseline agents against Proofwork on 20–50 representative tasks; blind-grade evidence correctness, decision quality, run success, token/cost overhead, and rework. Include negative cases, permission boundaries and deliberately misleading source documents. Separate inter-rater agreement from test script pass rate.
+**Next tests before a 'production-grade' claim:** compare baseline agents against Proofwork on 20-50 representative tasks; blind-grade evidence correctness, decision quality, run success, token/cost overhead, and rework. Include negative cases, permission boundaries and deliberately misleading source documents. Separate inter-rater agreement from test script pass rate.

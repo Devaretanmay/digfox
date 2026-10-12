@@ -24,7 +24,7 @@
 
 ## Decisions and rejected alternatives
 
-### D001 — Deterministic Python CSV parser
+### D001: Deterministic Python CSV parser
 - Alternatives: Multiple LLM agents, Prompt-only calculation
 - Reasoning: Decimal arithmetic and strict columns provide reproducible checks without ambiguous interpretation
 - Supported claims: C001

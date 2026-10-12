@@ -347,7 +347,7 @@ def report(root: Path) -> Path:
         lines.append(f"| {c['id']} | {c['confidence']} | {escape_md(c['statement'])} | {','.join(c['evidence'])} | {escape_md(c['alternative'])} | {escape_md(c['falsifier'])} |")
     lines.extend(["", "## Decisions and rejected alternatives", ""])
     for d in s["decisions"]:
-        lines.extend([f"### {d['id']} — {d['selection']}",
+        lines.extend([f"### {d['id']}: {d['selection']}",
                       f"- Alternatives: {', '.join(d['alternatives'])}",
                       f"- Reasoning: {d['reasoning']}", f"- Supported claims: {', '.join(d['claims']) or 'None (explicit assumption)'}",
                       f"- Reversible: {d['reversible']}", f"- Revisit if: {d['revisit_when']}", ""])

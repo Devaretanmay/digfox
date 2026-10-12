@@ -1,4 +1,4 @@
-# {{STAGE_ID}} — {{STAGE_NAME}}
+# {{STAGE_ID}}: {{STAGE_NAME}}
 
 ## Purpose
 One responsibility for this stage.
