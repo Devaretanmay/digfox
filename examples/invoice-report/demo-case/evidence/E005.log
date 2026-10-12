@@ -1,0 +1,15 @@
+COMMAND: python3 report.py negative.csv
+EXIT: 1
+STDOUT:
+
+STDERR:
+Traceback (most recent call last):
+  File "/mnt/data/proofwork/examples/invoice-report/report.py", line 41, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/data/proofwork/examples/invoice-report/report.py", line 38, in main
+    print(json.dumps(summarize(args.input), sort_keys=True))
+                     ~~~~~~~~~^^^^^^^^^^^^
+  File "/mnt/data/proofwork/examples/invoice-report/report.py", line 29, in summarize
+    raise ValueError(f"Negative or nonfinite amount at row {index}")
+ValueError: Negative or nonfinite amount at row 2

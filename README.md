@@ -1,214 +1,108 @@
-<p align="center">
-  <img src="assets/banner.jpg" alt="REA: Investigate Anything" width="100%">
-</p>
+# Proofwork
 
-<p align="center">
-  <a href="https://github.com/Devaretanmay/rea-investigate"><img src="https://img.shields.io/badge/tests-12%2F12%20passing-brightgreen.svg" alt="Tests"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
-  <a href="https://github.com/morluto/rea"><img src="https://img.shields.io/badge/instrument-REA%20CLI-orange.svg" alt="REA CLI"></a>
-  <a href="https://github.com/Devaretanmay/rea-investigate"><img src="https://img.shields.io/badge/agent%20skill-Claude%20%7C%20Codex%20%7C%20Antigravity-purple.svg" alt="Supported Agents"></a>
-</p>
+**Investigate deeply. Decide proportionately. Build only what's necessary. Prove what actually works.**
 
----
+Proofwork unifies two complimentary skill disciplines:
 
-# REA Investigator
+- **REA Investigator** (`Devaretanmay/rea-investigate`): authorized deep investigation of applications, binary artifacts, firmware, network and version changes with 13 capabilities, evidence hashes, counteranalysis and a strictly validated report.
+- **Systemcraft**: outcome-first automation design, deterministic work before AI where appropriate, staged file workspaces, human checkpoints, and validation.
 
-**One command -> a planned investigation across 13 capabilities -> an evidence-backed technical report.**
+**Architecture decision:** A *single* `proofwork` orchestration skill ships here with integrated Systemcraft scaffolding and a native evidence/decision/test ledger. The upstream REA Investigator can be installed alongside it without rewriting or weakening its specialized investigation code. The two interact through an attributed case/report handoff, preserving independent verification scopes. This is deliberate: concatenating two large `SKILL.md` files would produce overlapping instructions and poorer maintainability.
 
-**REA Investigator** is a unified, production-grade **Agent Skill** (`rea-investigate`) compatible with Claude Code, Codex, Antigravity, and tools supporting the open Agent Skills specification. 
+The package is **offline and useful without REA** for source-level research, workflow design, scaffold/audit, and evidence tracking. **It does not embed the original REA implementation**, because that repository was not available as a local artifact during assembly; the optional `--rea-path` route uses your exact local checkout. For deep app/binary forensics, install REA and its upstream tools separately.
 
-Instead of juggling fragmented prompts or shallow summaries, REA Investigator equips coding agents with a structured 4-phase lifecycle: **Plan**, **Trace**, **Verify**, and **Report**, backed by an immutable SHA-256 evidence ledger and adversarial auditing gates.
+## Install
 
----
+Requires Python 3.10+ and a local project directory.
 
-## Quick Invocation
-
-Once installed, invoke the skill directly inside your agent:
-
-```bash
-/rea-investigate /Applications/Example.app: explain exactly how the Export PDF button works, from click to output file, and produce a report.
-```
-
-Or target specific bundles, builds, or network flows:
-
-```bash
-# Static bundle inspection
-/rea-investigate ./app.asar: trace local search end to end. Static only, no execution.
-
-# Version and release comparison
-/rea-investigate ./v1.0.apk ./v2.0.apk: compare the authentication feature and document evidence.
-
-# Web application UI interaction trace
-/rea-investigate https://example.test: investigate the public request flow with browser observation.
-```
-
-The agent autonomously categorizes the target, evaluates the 13 capabilities, invokes local REA/system tools, logs cryptographic evidence hashes, challenges conclusions adversarially, and renders a comprehensive `REPORT.md`.
-
----
-
-## Investigation Lifecycle
-
-```text
-               REQUEST: /rea-investigate <target>
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 1. PLAN: Scope, Consent & Target Identity (S01, S02)        │
-│    SHA-256 fingerprinting, directory manifest, boundaries    │
-└──────────────────────────────┬──────────────────────────────┘
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 2. TRACE: Route to Applicable Capabilities (S03-S10, S13)   │
-│    JS/Electron · Web UI · Network/HAR · Native Mach-O/ELF   │
-│    Android APK · .NET PE · Process capture · Build diff     │
-└──────────────────────────────┬──────────────────────────────┘
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 3. VERIFY: Adversarial Evidence Audit (S12)                 │
-│    Skeptical counteranalysis: observation vs hypothesis     │
-│    Validation gates: no unverified edges, no missing hashes  │
-└──────────────────────────────┬──────────────────────────────┘
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 4. REPORT: Verified Delivery & Case Artifacts               │
-│    13-capability ledger + claim provenance + REPORT.md      │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Installation
-
-Install `rea-investigate` into your local project environment with a single command:
-
-```bash
-# Install for Claude Code
-python3 install.py --agent claude --project /path/to/your/project
-
-# Install for Codex / Agent Skills convention
+```sh
+# One skill, default (offline; no dependencies)
 python3 install.py --agent codex --project /path/to/your/project
+python3 install.py --agent claude --project /path/to/your/project
+python3 install.py --agent cursor --project /path/to/your/project
 
-# Dry run preview
-python3 install.py --agent claude --project /path/to/your/project --dry-run
+# Full two-skill integration: pass an existing local clone of REA
+python3 install.py --agent codex --project /path/to/your/project \
+  --rea-path /path/to/rea-investigate
+
+# Preview first; existing installations are protected by default
+python3 install.py --agent codex --project /path/to/your/project --dry-run
 ```
 
-The installer installs cleanly to `<project>/.claude/skills/rea-investigate` or `<project>/.agents/skills/rea-investigate` and never silently overwrites existing files without `--force`.
+The default installs to `.agents/skills/proofwork` on Codex, `.claude/skills/proofwork` on Claude Code, `.cursor/skills/proofwork` on Cursor. When `--rea-path` is supplied, it also installs the **original** REA skill in the adjacent `rea-investigate` folder. Files are copied into temporary directories before replacement; `--force` is required to replace existing skills.
 
-### Underlying REA Tools (Optional per modality)
-REA Investigator orchestrates the investigation process. When decompilation, AST parsing, or network capture is needed, configure the upstream [REA CLI](https://github.com/morluto/rea):
-
-```bash
-npm install --global rea-agents
-rea --help
-rea capabilities --json
-rea providers --json
-```
-
----
-
-## The 13 Capabilities
-
-Every investigation rigorously assesses all 13 capabilities, categorizing each as `done`, `not-applicable` (with concrete rationale), or `blocked` (with missing prerequisites):
-
-| Stage | Capability | Description | Verification Gate |
-| :---: | :--- | :--- | :--- |
-| **S01** | Scope & Authorization | Target definition, bounds, and consent | Falsifiable question & permissions |
-| **S02** | Artifact Mapping | File/bundle classification & hash manifest | SHA-256 verified; no guessed formats |
-| **S03** | JS/Electron Trace | Renderer, preload, main IPC, and route trace | Graph source locator per hop |
-| **S04** | Browser Observation | Web interaction, DOM changes, and network | Before/action/after state delta |
-| **S05** | Network Reconstruction | Offline HAR / MITM capture request-response | Credential scrubbed; record ordinals |
-| **S06** | Native Binary Analysis | Mach-O, ELF, PE functions and xrefs | Decompiler checked vs instructions |
-| **S07** | Android Package (APK) | Manifest, DEX classes, methods & JNI | Decompiled class + method locators |
-| **S08** | Managed .NET Analysis | CIL metadata, types, and P/Invoke boundaries | Verified PE/CLI token mapping |
-| **S09** | Process Capture | CLI invocation, stdout/stderr, file effects | Full input, output & exit code record |
-| **S10** | Build Comparison | Differential analysis between two releases | Paired coverage; proved diffs |
-| **S11** | Behavior Synthesis | Clean-room behavioral contract specification | Formal contract tests (opt-in) |
-| **S12** | Adversarial Audit | Skeptical review challenging all claims | `notes/audit.md` counter-hypotheses |
-| **S13** | Firmware Inventory | Firmware partition and embedded image map | Offset map & entropy without flashing |
-
----
-
-## Case Ledger and Strict Audit
-
-REA Investigator includes a built-in standard-library case ledger CLI (`case.py`) to enforce scientific rigor:
-
-```bash
-# Initialize a new isolated case
-python3 skills/rea-investigate/scripts/case.py init \
-  --target /path/to/artifact \
-  --question "How does feature X authenticate?" \
-  --out ./cases/feature-x
-
-# Register evidence, claims, and notes
-python3 skills/rea-investigate/scripts/case.py stage ./cases/feature-x S01 done
-python3 skills/rea-investigate/scripts/case.py render ./cases/feature-x
-
-# Run strict structural validation gate
-python3 skills/rea-investigate/scripts/case.py check ./cases/feature-x --strict
-```
-
-The strict check automatically fails if:
-- Any stage is left pending or unreasoned.
-- Claims cite unregistered evidence IDs.
-- Evidence files have mismatched SHA-256 digests.
-- Required notes (`overview`, `architecture`, `trace`, `verification`, `limitations`, `audit`) are missing.
-
----
-
-## Repository Structure
+## Example requests
 
 ```text
-rea-investigate/
-├── .gitignore
-├── LICENSE                               (MIT License)
-├── README.md                             (Documentation & quickstart)
-├── install.py                            (Agent installer script)
-├── assets/
-│   └── banner.jpg                        (Project header illustration)
-├── skills/
-│   └── rea-investigate/
-│       ├── SKILL.md                      (Primary Agent Skill instruction)
-│       ├── assets/                       (Real investigation report & excerpt)
-│       ├── references/                   (Capabilities, evidence rules, guides)
-│       │   ├── capabilities.md
-│       │   ├── evidence.md
-│       │   ├── report.md
-│       │   ├── tooling.md
-│       │   └── techniques/               (Applications, binaries, change-and-rebuild)
-│       └── scripts/
-│           ├── case.py                   (Deterministic case ledger & auditor)
-│           └── rea_payload.py            (JSON payload schemas)
-└── tests/
-    └── test_pack.py                      (Unit test suite: 12 tests)
+Use proofwork to investigate how our current onboarding system works.
+Trace one user record across ingestion, verification and billing; cite the actual
+source, document alternatives, implement one small safe improvement, and run
+regression tests. Do not send messages or modify production data.
 ```
 
----
+```text
+Use proofwork to turn my repeated competitor research into the simplest working
+process. First decide if a script or an agent is really needed. Deliver one
+reproducible example with evidence citations and clearly labeled unknowns.
+```
 
-## Real Investigation Report
+```text
+Use proofwork for a verified handoff from rea-investigate's authorized
+investigation of this desktop app. Preserve REA's original case, select a
+minimum viable automation from the findings, and build a tested thin slice.
+```
 
-An authentic investigation report generated by REA Investigator against the open-source Electron application [Zettlr](https://github.com/Zettlr/Zettlr) (v4.8.0, commit `0d2839e`) is included in this repository:
-- Full Report: [skills/rea-investigate/assets/example-synthetic-report.md](skills/rea-investigate/assets/example-synthetic-report.md)
-- Executive Excerpt: [skills/rea-investigate/assets/example-report-excerpt.md](skills/rea-investigate/assets/example-report-excerpt.md)
+## Utilities
 
-It documents the end-to-end document export lifecycle, context isolation bridge, IPC command dispatching, dirty buffer handling, and Pandoc execution with complete SHA-256 evidence provenance.
-
----
-
-## Testing
-
-Run the local test suite using Python standard library:
-
-```bash
+```sh
+python3 skills/proofwork/scripts/proof.py doctor
+python3 skills/proofwork/scripts/proof.py --help
+python3 skills/proofwork/scripts/scaffold.py weekly-report --output ./workflows \
+  --stages collect,transform,verify
+python3 skills/proofwork/scripts/audit.py ./workflows/weekly-report
 python3 -m unittest discover -s tests -v
 ```
 
-All 12 tests validate case initialization, evidence hashing, integrity verification, and strict qualification gates.
+`proof.py` persists a case ledger (copied evidence files + SHA-256, claims and alternatives, architectural decisions, recorded test logs, approvals, limitations). `check` verifies hashes, paths, references, and phase-specific minimum documentation; `report` generates a human-readable case report. These cannot prove a claim is true or a test was executed as recorded.
 
----
+`scaffold.py` generates an **unimplemented blueprint**. `audit.py` checks basic structure, not functional correctness. Agent execution and specialist REA tooling depend on the tools and access available in the host coding agent.
 
-## Boundaries and Ethics
+## Decision pipeline
 
-- Analyze **only** software, captures, and systems you own or have explicit authorization to inspect.
-- Never bypass technical protections, extract third-party secrets, or exfiltrate credentials.
-- Process capture executes with local user privileges; sandbox and isolate when needed.
-- REA Investigator is independently authored and not officially affiliated with or endorsed by upstream tool authors.
+| Gate | Required result | What blocks progression |
+|---|---|---|
+| Scope | Narrow question, permissions, acceptance | Unbounded, unauthorized work |
+| Investigate | Actual sources, locators, contradictory hypotheses | Unsupported causal narrative |
+| Decide | Chosen implementation, credible alternative, kill criterion | Speculative architecture |
+| Build | Small vertical slice, stable contracts | Unreviewed side effects |
+| Verify | Real test logs and negative cases | Fabricated/unverified runs |
+| Deliver | Audit trail, observed outcomes, limitations | Unqualified success claims |
+
+## Tested boundaries
+
+The built-in standard-library tools require local read/write permission and do not run unknown code, reach the network, create credentials, or obtain permissions. Sensitive material must be redacted before capture. REA itself requires separate authorization for live observation and may need `rea` CLI/providers for deep traces.
+
+## Layout
+
+```text
+proofwork/
+├── install.py
+├── skills/
+│   └── proofwork/
+│       ├── SKILL.md
+│       ├── scripts/{proof.py,scaffold.py,audit.py}
+│       ├── references/{rea-interop,decisions,cli,design-rules,...}.md
+│       └── assets/{OUTCOME,STAGE,REVIEW}.md
+├── tests/
+├── examples/
+├── SOURCES.md
+└── LICENSE
+```
+
+## Status
+
+**v1.0.0 candidate.** CLI and installer are locally testable; there is no measured success-rate or cost-reduction claim for autonomous agents. Benchmarking on representative real tasks is future validation, not a completed result.
+
+Licensed MIT. Original REA Investigator is preserved from your repository when you explicitly supply its checkout. Project is not affiliated with or endorsed by Matt Pocock, Jake Van Clief, or the Agent Skills specification maintainers.
+
+See [DESIGN.md](DESIGN.md) for the architecture tradeoffs and limitations, and [EVALUATION.md](EVALUATION.md) for the agent-level benchmark protocol.

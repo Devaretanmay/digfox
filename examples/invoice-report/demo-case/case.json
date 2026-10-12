@@ -1,0 +1,146 @@
+{
+  "schema": 1,
+  "created_utc": "2026-10-12T19:25:42+00:00",
+  "question": "Can invoice totals be reproduced without a language model?",
+  "target": "examples/invoice-report",
+  "intent": "build",
+  "authorized": true,
+  "phase": "deliver",
+  "phase_history": [
+    {
+      "phase": "scope",
+      "at": "2026-10-12T19:25:42+00:00"
+    },
+    {
+      "phase": "investigate",
+      "at": "2026-10-12T19:25:42+00:00"
+    },
+    {
+      "phase": "decide",
+      "at": "2026-10-12T19:25:43+00:00"
+    },
+    {
+      "phase": "build",
+      "at": "2026-10-12T19:25:43+00:00"
+    },
+    {
+      "phase": "verify",
+      "at": "2026-10-12T19:25:44+00:00"
+    },
+    {
+      "phase": "deliver",
+      "at": "2026-10-12T19:25:44+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E001",
+      "kind": "source",
+      "path": "evidence/E001.csv",
+      "sha256": "4879c5901e511ac0be76de331e882f5ef0c8ad4ffbbe6ff25173a749d609d3c4",
+      "bytes": 118,
+      "locator": "input.csv:2-5",
+      "note": "Synthetic input used for controlled tests",
+      "captured_utc": "2026-10-12T19:25:42+00:00"
+    },
+    {
+      "id": "E002",
+      "kind": "source",
+      "path": "evidence/E002.py",
+      "sha256": "f9a6bf1d555e5d5c00613584f0b545f97d78080694d9793272112ccb2e58225f",
+      "bytes": 1625,
+      "locator": "report.py:summarize",
+      "note": "Deterministic transformation implementation",
+      "captured_utc": "2026-10-12T19:25:42+00:00"
+    },
+    {
+      "id": "E003",
+      "kind": "observation",
+      "path": "evidence/E003.log",
+      "sha256": "4b66a63808e5fa710454886754c0162168451c89cf8990c04fa86c3efb60b37e",
+      "bytes": 108,
+      "locator": "golden-test.log:3",
+      "note": "Captured output of actual script run",
+      "captured_utc": "2026-10-12T19:25:43+00:00"
+    },
+    {
+      "id": "E004",
+      "kind": "test-log",
+      "path": "evidence/E004.log",
+      "sha256": "4b66a63808e5fa710454886754c0162168451c89cf8990c04fa86c3efb60b37e",
+      "bytes": 108,
+      "locator": "test: Golden invoice totals",
+      "note": "4 invoices, exact totals: Design 175.25, Engineering 225.00",
+      "captured_utc": "2026-10-12T19:25:43+00:00"
+    },
+    {
+      "id": "E005",
+      "kind": "test-log",
+      "path": "evidence/E005.log",
+      "sha256": "2fcd344502321d7035ac314bb11d90ec6e917a6fb74627a6e8535bc7510fcb2e",
+      "bytes": 597,
+      "locator": "test: Reject negative amount",
+      "note": "Expected failure: negative input should raise ValueError",
+      "captured_utc": "2026-10-12T19:25:44+00:00"
+    }
+  ],
+  "claims": [
+    {
+      "id": "C001",
+      "statement": "Synthetic example groups monetary totals by department",
+      "evidence": [
+        "E001",
+        "E002",
+        "E003"
+      ],
+      "confidence": "observed",
+      "locator": "golden-test.log:4",
+      "alternative": "Output might be hardcoded, not computed",
+      "falsifier": "Change one input amount and rerun; output should change by that amount",
+      "created_utc": "2026-10-12T19:25:43+00:00"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D001",
+      "selection": "Deterministic Python CSV parser",
+      "alternatives": [
+        "Multiple LLM agents",
+        "Prompt-only calculation"
+      ],
+      "reasoning": "Decimal arithmetic and strict columns provide reproducible checks without ambiguous interpretation",
+      "claims": [
+        "C001"
+      ],
+      "reversible": true,
+      "revisit_when": "Input formats become highly variable or require ambiguous judgment",
+      "created_utc": "2026-10-12T19:25:43+00:00"
+    }
+  ],
+  "tests": [
+    {
+      "id": "T001",
+      "label": "Golden invoice totals",
+      "evidence": "E004",
+      "exit_code": 0,
+      "scope": "4 invoices, exact totals: Design 175.25, Engineering 225.00",
+      "recorded_utc": "2026-10-12T19:25:43+00:00",
+      "attestation": "reported by operator; log integrity checked, execution not independently attested"
+    },
+    {
+      "id": "T002",
+      "label": "Reject negative amount",
+      "evidence": "E005",
+      "exit_code": 1,
+      "scope": "Expected failure: negative input should raise ValueError",
+      "recorded_utc": "2026-10-12T19:25:44+00:00",
+      "attestation": "reported by operator; log integrity checked, execution not independently attested"
+    }
+  ],
+  "approvals": [],
+  "constraints": [],
+  "limitations": [
+    "Only synthetic 4-row fixture and one malformed negative input were executed; not a production benchmark.",
+    "Recorded process exit codes reflect the demo script invocations only; this ledger cannot attest general runtime integrity."
+  ]
+}

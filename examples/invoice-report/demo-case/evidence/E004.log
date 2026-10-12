@@ -1,0 +1,6 @@
+COMMAND: python3 report.py input.csv
+EXIT: 0
+STDOUT:
+{"Design": "175.25", "Engineering": "225.00"}
+
+STDERR:
