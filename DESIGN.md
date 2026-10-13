@@ -1,34 +1,67 @@
-# Architecture decision record: why Proofwork is a system, not a concatenation
+# Architecture Decision Record: Proofwork System Design
 
-## What was considered
+## 1. Architectural Options Considered
 
-| Architecture | Advantage | Why it was rejected / accepted |
+| Architecture | Advantage | Outcome |
 |---|---|---|
-| Merge REA and Systemcraft SKILL.md verbatim | Apparently one skill | **Reject.** REA's deep specialized investigation demands dedicated instructions, 13-capability routing, and tool providers. Overlapping agent instructions would be large and brittle. |
-| Replace REA with a general research checklist | Tiny download | **Reject.** Sacrifices binary/app/firmware/HAR/provider depth, original evidence ledger and strict quality gates. |
-| Always spawn a team of agents | Impressive demo | **Reject.** Adds latency, cost, race conditions and authority confusion where a script or one agent suffices. |
-| Proofwork front door + integrated Systemcraft + independent REA specialist + provenance handoff | Focused default, deep opt-in capability, and compatible original source | **Choose.** Small fast path without REA; authorized specialist route when needed; separate verified scopes. |
+| Merge REA and Systemcraft SKILL.md verbatim | Single large skill | **Reject.** REA specialized investigation demands dedicated instructions, 13-capability routing, and tool providers. Overlapping agent instructions produce brittle tool selection. |
+| Replace REA with a generic checklist | Minimal footprint | **Reject.** Sacrifices binary, application, firmware, HAR, and provider depth, alongside structured evidence ledgers. |
+| Always spawn a multi-agent team | Impressive demonstration | **Reject.** Adds latency, token expense, race conditions, and authority confusion where a single script or agent suffices. |
+| Proofwork front door + integrated Systemcraft + decoupled REA specialist + provenance bridge | Focused default, deep opt-in capability, and compatible original source | **Adopt.** Lightweight path without REA; authorized specialist route when needed; separate verified scopes. |
 
-## Components
+---
 
-1. **Proofwork `SKILL.md`**: model-facing decision protocol (scope, investigate, decide, build, verify, deliver).
-2. **Proofwork ledger (`proof.py`)**: local integrity and documentation gate; supports raw evidence + claims + alternatives + decisions + tests + report.
-3. **Systemcraft-derived scaffold/audit/templates**: generates outcome contracts and staged workspaces only when appropriate.
-4. **REA Investigator**: optionally installs from original local checkout without modifying source; retains its native case ledger, specialized references and 13 capability routing.
-5. **Bridge (`proof.py import-rea`)**: hashes original REA case manifest and report, attributes them, and requires an actual evidence/claim review before downstream claims are made.
+## 2. Theoretical Formulation and State Model
 
-## Trust boundaries
+Proofwork formalizes agent-environment interactions as a state-constrained transition system with an append-only evidence ledger:
 
-- Evidence bytes are copied into a local case and SHA-256 protected against accidental change; the hash **does not** prove its origin or statement truth.
-- Provenance from REA is not semantic verification by Proofwork. REA strict check remains the source of truth for its own case completeness.
-- Test logs are operator-supplied; a log hash does not attest the command ran or that its expected behavior was correct. The included demo commands were actually run during packaging.
-- `approve` is a documentary record, not a mechanism to obtain new rights. Host agent/user tooling enforces actual permissions.
-- Unknown code, captures, publishing, spending, production mutations and third-party access require user approval and proper permissions. Installer only writes copied files to an explicitly selected project.
+$$\mathcal{M} = \langle \mathcal{S}, \mathcal{A}, \mathcal{O}, \mathcal{T}, \Omega, \mathcal{L} \rangle$$
 
-## Practical limitations and roadmap
+Where:
+* $\mathcal{S}$ represents repository states and dependencies.
+* $\mathcal{A}$ represents agent actions (file reads, AST traversal, script generation, test runs).
+* $\mathcal{O}$ represents the observation space emitted by environment processes and tools.
+* $\mathcal{T}: \mathcal{S} \times \mathcal{A} \to \mathcal{S}$ defines state transitions under modifications.
+* $\Omega: \mathcal{S} \times \mathcal{A} \to \mathcal{O}$ defines observation emission probabilities.
+* $\mathcal{L}$ represents the local evidence snapshot ledger.
 
-**Already verified:** standard-library import, ledger validation, evidence hash tamper detection, bad refs, adversarial claim fields, no silent overwrite, REA-path copying, structural scaffold/audit and a controlled successful/negative fixture.
+### 2.1 Evidence Tuple Semantics
 
-**Not yet verified:** actual model adherence to Proofwork instructions across clients, throughput with large repositories, cross-model quality gains, security of arbitrary user-supplied REA tools, production concurrency or external side effects.
+Every discrete observation admitted into the reasoning trace is captured as a tuple:
 
-**Next tests before a 'production-grade' claim:** compare baseline agents against Proofwork on 20-50 representative tasks; blind-grade evidence correctness, decision quality, run success, token/cost overhead, and rework. Include negative cases, permission boundaries and deliberately misleading source documents. Separate inter-rater agreement from test script pass rate.
+$$\mathbf{e}_k = \langle \tau_k, \mathbf{uri}_k, \mathbf{h}_k, \mathbf{c}_k, \mathcal{V}_k \rangle$$
+
+Where:
+* $\tau_k \in \{\text{source}, \text{observation}, \text{test-log}, \text{artifact}\}$ denotes the artifact category.
+* $\mathbf{uri}_k$ represents the immutable canonical locator within the case container.
+* $\mathbf{h}_k = \text{SHA256}(\text{bytes}_k)$ represents the cryptographic digest computed at ingestion time $t_k$.
+* $\mathbf{c}_k$ denotes the textual context or line-range bounds.
+* $\mathcal{V}_k \in \{0, 1\}$ represents the verification state under cyclic integrity audits.
+
+### 2.2 Adversarial Falsification Invariant
+
+An empirical claim $C_i \in \mathcal{C}$ asserting behavioral properties of target code is prohibited from entering status `observed` unless it satisfies Popperian falsifiability criteria:
+
+$$\text{Status}(C_i) = \text{observed} \implies \left( E(C_i) \neq \emptyset \;\land\; H_{\text{alt}}(C_i) \neq \emptyset \;\land\; F(C_i) \neq \emptyset \right)$$
+
+Where:
+* $E(C_i) \subseteq \{\mathbf{e}_1, \dots, \mathbf{e}_n\}$ denotes non-empty supporting cryptographic evidence references.
+* $H_{\text{alt}}(C_i)$ denotes an explicitly articulated counter-hypothesis or competing explanation.
+* $F(C_i)$ denotes a concrete operational falsifier (a deterministic test or observation that disproves the claim).
+
+---
+
+## 3. Trust Boundaries and Limitations
+
+1. **Snapshot Ledger vs Append-Only Chains**: Evidence files are copied into a local case folder and SHA-256 digests are recorded in `case.json`. This detects accidental drift or tampering on disk. It is not an immutable, externally anchored blockchain; an attacker with write access to the filesystem can modify both evidence and digests simultaneously.
+2. **Recorded Test Logs vs Sandboxed Execution**: The `test` command registers operator-supplied test logs and checks reported exit codes. It does not independently sandbox or execute test binaries. A clean exit code ($0$) verifies that the recorded run completed, not that test coverage was semantically exhaustive.
+3. **Documentary Approvals**: The `approve` command logs human consent for an audit trail. It does not generate operating system permissions or network credentials.
+4. **REA Ingestion**: Provenance imported from REA via `import-rea` attributes upstream findings with SHA-256 digests; it does not automatically certify semantic truth.
+
+---
+
+## 4. Verification Status and Next Validation Steps
+
+* **Verified locally**: Standard-library import, ledger validation, evidence hash tamper detection, invalid reference rejection, adversarial claim schema enforcement, overwrite protection, REA bridge attribution, and structural scaffold/audit checks.
+* **Not yet verified**: Statistical model adherence across frontier clients, latency on large monorepos, and agent task completion lift on public benchmarks.
+* **Next milestone**: Execute paired evaluations on 20-50 real GitHub issues with and without Proofwork to measure factual correctness, token efficiency, and regression rates.
