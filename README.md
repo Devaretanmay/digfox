@@ -1,24 +1,32 @@
-# Proofwork: Make coding agents investigate before they build
+# Proofwork
 
-Most AI coding agents jump straight to editing code before they understand what broke. Proofwork gives agents a simple, disciplined workflow: trace real evidence, challenge assumptions, choose the simplest fix, and verify with actual tests before calling the job done.
+> **TL;DR:** Proofwork is an open-source skill that stops AI coding agents from guessing. It forces them to trace actual evidence, challenge their own assumptions, pick the simplest fix, and prove it works with real tests before touching your code.
 
-Works with Codex, Claude Code, and Cursor. Built with standard Python 3.10+ (no external dependencies, no required cloud accounts).
-
----
-
-## What Proofwork does
-
-1. **Investigate first, code second**: Stops agents from writing speculative fixes before they read the relevant files and trace actual inputs to outputs.
-2. **Challenge assumptions**: Forces the agent to document an alternative explanation and a way to disprove its hypothesis before treating a claim as fact.
-3. **Pick the simplest fix**: Requires the agent to justify why a simple script or function isn't enough before introducing complex abstractions or new libraries.
-4. **Local evidence snapshot ledger**: Copies cited files into a local folder and hashes them with SHA-256 to catch accidental edits, file drift, and stale test outputs.
-5. **Decoupled forensic depth**: Works out of the box for routine coding; connects cleanly with the specialized REA Investigator (`Devaretanmay/rea-investigate`) for deep binary, IPC, and network forensics without bloating your everyday prompts.
+Works with Codex, Claude Code, and Cursor. Built with standard Python 3.10+ (zero third-party dependencies, zero required cloud accounts).
 
 ---
 
-## 60-second quickstart
+## Why this exists (and why coding agents break things)
 
-Everything runs locally with Python standard library tools:
+You paste a bug report into your AI coding assistant. Within five seconds, the model writes a 300-line refactor, invents helper functions that do not exist in your codebase, swaps your database queries for an unneeded multi-agent queue, and cheerfully announces that everything is fixed.
+
+You run it. It crashes immediately.
+
+We built Proofwork because we got tired of babysitting agents that write code before they understand what broke. Most agents fail because they lack basic engineering discipline: they jump straight into generation without verifying facts.
+
+Proofwork adds guardrails that turn your agent into a disciplined engineer:
+
+* **Investigate first, code second:** The agent must inspect actual files and trace real inputs to outputs before modifying a single line of code.
+* **Challenge assumptions:** The agent cannot treat a bug theory as fact without documenting an alternative explanation and a concrete way to disprove it.
+* **Pick the simplest fix:** The agent must explain why a 15-line script or a simple function is not enough before reaching for complex architectures or new dependencies.
+* **Catch drift with local evidence:** The agent saves local snapshots of consulted code with SHA-256 hashes, catching accidental edits, stale test runs, and broken paths.
+* **Decoupled forensic depth:** Works out of the box for normal coding tasks; plugs into the optional REA Investigator (`Devaretanmay/rea-investigate`) when you need deep binary, IPC, or network packet analysis.
+
+---
+
+## Quickstart in 60 seconds
+
+Everything runs locally with standard Python tools:
 
 ```bash
 # 1. Check your local environment
@@ -64,28 +72,55 @@ python3 skills/proofwork/scripts/proof.py check ./cases/auth-demo
 python3 skills/proofwork/scripts/proof.py report ./cases/auth-demo
 ```
 
-The resulting `REPORT.md` provides an auditable summary of inspected files, SHA-256 hashes, competing explanations, chosen approaches, and test results.
+When you run `report`, Proofwork generates a clean `REPORT.md` inside your case folder summarizing all consulted evidence, file hashes, competing theories, architectural choices, and test outputs.
 
 ---
 
-## The six-stage workflow
+## How it works under the hood
 
-Proofwork guides agents through six sequential stages:
+Proofwork guides your agent through a strict six-stage sequence:
 
-| Stage | Goal | What is required | What blocks progress |
-|---|---|---|---|
-| **1. Scope** | Define boundaries and goals | Clear question, target path, and intent | Unbounded or unauthorized work |
-| **2. Investigate** | Trace actual sources | Evidence snapshots with SHA-256 digests | Speculative claims lacking citations |
-| **3. Decide** | Choose the minimal approach | Documented alternatives and revisit rules | Unjustified single-option complexity |
-| **4. Build** | Implement the minimal slice | Smallest working change with no side effects | Unreviewed mutations or scope creep |
-| **5. Verify** | Run actual tests | Real test logs with both positive and negative checks | Missing failure or boundary test logs |
-| **6. Deliver** | Summarize the results | Verified evidence hashes and declared risks | Unchecked hashes or unproven claims |
+```text
+Scope -> Investigate -> Decide -> Build -> Verify -> Deliver
+```
+
+1. **Scope:** Define the exact question, target directory, and boundaries. If an action needs human approval (such as modifying production data or calling external APIs), flag it here first.
+2. **Investigate:** Trace one real input through to its output. Save evidence files with SHA-256 hashes. Every observed claim requires an alternative hypothesis and a falsification test.
+3. **Decide:** Choose the simplest fix that solves the problem. Document at least one rejected alternative and a condition that would make you revisit the choice.
+4. **Build:** Write a minimal, working slice of code. If you are building a reusable workflow, use `scaffold.py` to create explicit input and output contracts between stages.
+5. **Verify:** Run actual tests and record the output. Check both expected successes and deliberate failure cases.
+6. **Deliver:** Summarize what was inspected, what changed, what tests ran, and what risks remain.
 
 ---
 
-## Installation
+## How the evidence ledger works
 
-Install Proofwork into your active coding agent directory:
+The evidence ledger (`proof.py`) is intentionally dead simple.
+
+It is **not** a blockchain, a cloud database, or a tamper-proof cryptographic audit log. It is a local directory containing:
+
+* `case.json`: A plain JSON file storing your investigation question, claims, trade-offs, and test logs.
+* `evidence/`: Local copies of the files you inspected.
+* SHA-256 hashes: Cryptographic fingerprints of those copied files.
+
+Whenever you run `proof.py check`, it recalculates the hashes on disk and compares them against `case.json`. If you accidentally edited an evidence file, swapped a test log, or broke a path, the check catches it immediately.
+
+---
+
+## Honest trade-offs and gotchas
+
+We prefer to tell you what this tool does not do before you discover it in production:
+
+* **File hashes check bytes, not truth:** A SHA-256 hash proves the file on disk has not changed since you saved it. It does not prove the code is bug-free or that the author wrote good logic.
+* **Test recording is not sandboxed execution:** The `test` command saves test logs and records exit codes that you or the agent provide. It does not run test binaries inside an isolated container.
+* **Documentary approval is not an IAM policy:** The `approve` command logs human consent for an audit record. It does not grant operating system permissions or network credentials.
+* **Zero external dependencies:** The core tool runs entirely on Python's standard library. No `pip install`, no API keys, and no telemetry sent to outside servers.
+
+---
+
+## Installing Proofwork
+
+Install Proofwork directly into your coding agent workspace:
 
 ```bash
 # Codex (.agents/skills/proofwork)
@@ -107,20 +142,7 @@ python3 install.py --agent codex --project /path/to/your/project \
 
 ---
 
-## Honest limits: what Proofwork does and does not do
-
-We believe in being upfront about what this tool actually guarantees:
-
-* **Snapshot ledger vs blockchain**: Files are copied into a local folder and hashed with SHA-256 in `case.json`. This catches accidental file edits, drift, and stale test outputs. It is not an immutable distributed ledger; anyone with write access to the filesystem can edit both the files and the JSON.
-* **Test recording vs test execution**: The `test` command saves test logs and records exit codes that you or the agent provide. It does not run test binaries inside an isolated sandbox.
-* **Documentary approval**: The `approve` command logs human sign-off for an audit record. It does not grant operating system permissions or API access.
-* **Status**: 22 automated unit and smoke tests pass locally. Measuring how much Proofwork improves agent success on real GitHub issues is an open benchmarking plan described in [EVALUATION.md](EVALUATION.md).
-
-For design rationale and tradeoffs, see [DESIGN.md](DESIGN.md).
-
----
-
-## Repository structure
+## Repository layout
 
 ```text
 proofwork/
