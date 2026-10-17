@@ -158,30 +158,6 @@ python3 install.py --agent codex --project /path/to/your/project \
 
 ---
 
-## Repository layout
-
-```text
-digfox/
-├── install.py                             Universal agent installer (Codex, Claude, Cursor)
-├── skills/
-│   └── digfox/
-│       ├── SKILL.md                       Agent instructions and decision rules
-│       ├── scripts/
-│       │   ├── proof.py                   Evidence ledger CLI and report generator
-│       │   ├── scaffold.py                Staged contract workspace generator
-│       │   └── audit.py                   Structural validation checker
-│       ├── references/                    Reference documentation and interop rules
-│       └── assets/                        Outcome, stage, and review templates
-├── tests/                                 Regression and documentation smoke tests
-├── examples/                              Reference end-to-end case (invoice reporting)
-├── DESIGN.md                              Architecture decisions and tradeoffs
-├── EVALUATION.md                          Empirical benchmark plan
-├── SOURCES.md                             Origin credits and legal boundaries
-└── LICENSE                                MIT License
-```
-
----
-
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
