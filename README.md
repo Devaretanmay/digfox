@@ -1,8 +1,14 @@
 # Digfox
 
-> **TL;DR:** Digfox is an open-source skill that stops AI coding agents from guessing. It forces them to trace actual evidence, challenge their own assumptions, pick the simplest fix, and prove it works with real tests before touching your code.
+> **TL;DR:** Digfox is an open-source agent skill that stops AI coding assistants from guessing. It forces them to trace actual evidence, challenge their own assumptions, pick the simplest fix, and verify it works with real tests before touching your code.
 
-Works with Codex, Claude Code, and Cursor. Built with standard Python 3.10+ (zero third-party dependencies, zero required cloud accounts).
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-brightgreen.svg)]()
+[![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero%20(stdlib)-success.svg)]()
+[![Platform: Codex | Claude | Cursor](https://img.shields.io/badge/Agents-Codex%20%7C%20Claude%20%7C%20Cursor-purple.svg)]()
+[![Tests: 22 Passed](https://img.shields.io/badge/Tests-22%20Passed-success.svg)]()
+
+[Quickstart](#quickstart-in-60-seconds) | [Why This Exists](#why-this-exists-and-why-coding-agents-break-things) | [How It Works](#how-it-works-under-the-hood) | [Agent Compatibility](#installing-digfox-into-your-agent) | [Honest Trade-offs](#honest-trade-offs-and-gotchas)
 
 ---
 
@@ -14,19 +20,19 @@ You run it. It crashes immediately.
 
 We built Digfox because we got tired of babysitting agents that write code before they understand what broke. Most agents fail because they lack basic engineering discipline: they jump straight into generation without verifying facts.
 
-Digfox adds guardrails that turn your agent into a disciplined engineer:
-
-* **Investigate first, code second:** The agent must inspect actual files and trace real inputs to outputs before modifying a single line of code.
-* **Challenge assumptions:** The agent cannot treat a bug theory as fact without documenting an alternative explanation and a concrete way to disprove it.
-* **Pick the simplest fix:** The agent must explain why a 15-line script or a simple function is not enough before reaching for complex architectures or new dependencies.
-* **Catch drift with local evidence:** The agent saves local snapshots of consulted code with SHA-256 hashes, catching accidental edits, stale test runs, and broken paths.
-* **Decoupled forensic depth:** Works out of the box for normal coding tasks; plugs into the optional REA Investigator (`Devaretanmay/rea-investigate`) when you need deep binary, IPC, or network packet analysis.
+| The Default Coding Agent | The Digfox-Grounded Agent |
+|---|---|
+| Guesses the root cause from a prompt snippet | Traces real code paths from input to output |
+| Invents non-existent helper functions and APIs | Cites exact file locators with SHA-256 byte snapshots |
+| Reaches for complex multi-agent architectures | Justifies why a 15-line script is not enough first |
+| Claims tests passed without running them | Captures real test logs with both success and failure cases |
+| Leaves you to debug a broken production branch | Delivers an auditable case report with documented risks |
 
 ---
 
 ## Quickstart in 60 seconds
 
-Everything runs locally with standard Python tools:
+Everything runs locally using Python's standard library. No `pip install`, no API keys, and no cloud accounts required.
 
 ```bash
 # 1. Check your local environment
@@ -39,7 +45,7 @@ python3 skills/digfox/scripts/proof.py init \
   --target "src/auth" \
   --intent build
 
-# 3. Save a snapshot of the code you inspected
+# 3. Save an immutable snapshot of the code you inspected
 python3 skills/digfox/scripts/proof.py evidence \
   --file src/auth/token.py \
   --kind source \
@@ -72,7 +78,7 @@ python3 skills/digfox/scripts/proof.py check ./cases/auth-demo
 python3 skills/digfox/scripts/proof.py report ./cases/auth-demo
 ```
 
-When you run `report`, Digfox generates a clean `REPORT.md` inside your case folder summarizing all consulted evidence, file hashes, competing theories, architectural choices, and test outputs.
+When you run `report`, Digfox compiles a clean `REPORT.md` inside your case folder summarizing all consulted evidence, file hashes, competing theories, architectural choices, and test outputs.
 
 ---
 
@@ -84,12 +90,14 @@ Digfox guides your agent through a strict six-stage sequence:
 Scope -> Investigate -> Decide -> Build -> Verify -> Deliver
 ```
 
-1. **Scope:** Define the exact question, target directory, and boundaries. If an action needs human approval (such as modifying production data or calling external APIs), flag it here first.
-2. **Investigate:** Trace one real input through to its output. Save evidence files with SHA-256 hashes. Every observed claim requires an alternative hypothesis and a falsification test.
-3. **Decide:** Choose the simplest fix that solves the problem. Document at least one rejected alternative and a condition that would make you revisit the choice.
-4. **Build:** Write a minimal, working slice of code. If you are building a reusable workflow, use `scaffold.py` to create explicit input and output contracts between stages.
-5. **Verify:** Run actual tests and record the output. Check both expected successes and deliberate failure cases.
-6. **Deliver:** Summarize what was inspected, what changed, what tests ran, and what risks remain.
+| Stage | Goal | What is required | What blocks progress |
+|---|---|---|---|
+| **1. Scope** | Define boundaries and goals | Clear question, target path, and intent | Unbounded or unauthorized work |
+| **2. Investigate** | Trace actual sources | Evidence snapshots with SHA-256 digests | Speculative claims lacking citations |
+| **3. Decide** | Choose the minimal approach | Documented alternatives and revisit rules | Unjustified single-option complexity |
+| **4. Build** | Implement the minimal slice | Smallest working change with no side effects | Unreviewed mutations or scope creep |
+| **5. Verify** | Run actual tests | Real test logs with both positive and negative checks | Missing failure or boundary test logs |
+| **6. Deliver** | Summarize the results | Verified evidence hashes and declared risks | Unchecked hashes or unproven claims |
 
 ---
 
@@ -118,24 +126,32 @@ We prefer to tell you what this tool does not do before you discover it in produ
 
 ---
 
-## Installing Digfox
+## Installing Digfox into your agent
 
-Install Digfox directly into your coding agent workspace:
+Digfox installs directly into standard agent skill directories across leading development environments:
+
+| Coding Environment | Target Directory | Installer Flag |
+|---|---|---|
+| **OpenAI Codex** | `.agents/skills/digfox` | `--agent codex` |
+| **Anthropic Claude Code** | `.claude/skills/digfox` | `--agent claude` |
+| **Cursor** | `.cursor/skills/digfox` | `--agent cursor` |
+
+Run the installer with your project path:
 
 ```bash
-# Codex (.agents/skills/digfox)
+# Install to Codex workspace
 python3 install.py --agent codex --project /path/to/your/project
 
-# Claude Code (.claude/skills/digfox)
+# Install to Claude Code workspace
 python3 install.py --agent claude --project /path/to/your/project
 
-# Cursor (.cursor/skills/digfox)
+# Install to Cursor workspace
 python3 install.py --agent cursor --project /path/to/your/project
 
-# Preview what will be installed without touching files
+# Dry-run inspection (shows planned file copies without writing)
 python3 install.py --agent codex --project /path/to/your/project --dry-run
 
-# Optional: Install alongside an existing local REA checkout
+# Optional: Install alongside a local REA Investigator checkout
 python3 install.py --agent codex --project /path/to/your/project \
   --rea-path /path/to/rea-investigate
 ```
@@ -146,7 +162,7 @@ python3 install.py --agent codex --project /path/to/your/project \
 
 ```text
 digfox/
-├── install.py                             Agent skill installer (Codex, Claude, Cursor)
+├── install.py                             Universal agent installer (Codex, Claude, Cursor)
 ├── skills/
 │   └── digfox/
 │       ├── SKILL.md                       Agent instructions and decision rules
