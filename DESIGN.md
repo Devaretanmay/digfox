@@ -20,7 +20,7 @@ Digfox adds guardrails to stop that. It gives agents a simple sequence: understa
 
 | Option | What we chose | Why |
 |---|---|---|
-| Merge REA and Systemcraft into one massive file | **Rejected** | REA is built for deep reverse engineering (binaries, Electron apps, IPC, network traffic). Shoving all those instructions into every routine coding prompt adds token waste and confuses the model. |
+| Merge REA and Digfox into one massive file | **Rejected** | REA is built for deep reverse engineering (binaries, Electron apps, IPC, network traffic). Shoving all those instructions into every routine coding prompt adds token waste and confuses the model. |
 | Replace REA with a generic research checklist | **Rejected** | A checklist is useless when you actually need deep binary decompilation or network traffic capture. Keeping REA as a decoupled optional tool gives you forensic depth without daily prompt bloat. |
 | Spin up a swarm of background agents by default | **Rejected** | Multi-agent swarms look great in demos, but in production they burn tokens, introduce race conditions, and create confusing failure modes. Default to one capable agent and deterministic scripts. |
 | Lightweight front door with an optional evidence ledger | **Accepted** | Digfox works out of the box with standard Python. If you want deep forensics, connect REA. If you want an audit trail, use the CLI ledger. |

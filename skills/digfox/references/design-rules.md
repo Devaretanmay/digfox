@@ -1,4 +1,4 @@
-# Systemcraft: design decisions
+# Digfox: design decisions
 
 ## Decision ladder
 
