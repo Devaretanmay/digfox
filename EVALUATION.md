@@ -1,23 +1,39 @@
-# Proofwork evaluation protocol
+# How we evaluate Proofwork
 
-The included automated tests cover deterministic code, not agent behavior. Do not state win rates without collecting task runs.
+Our unit tests prove that our Python scripts don't crash and that file hashes work. They don't prove that an AI agent using Proofwork writes better code, hallucinates less, or builds simpler systems.
 
-## Five benchmark families
+Here is how we measure whether Proofwork actually improves agent performance on real tasks.
 
-1. **Investigate a web application feature** (authorized): can the agent establish a full input→handler→effect path, cite precise sources, and explicitly state missing runtime observations? Score evidence fidelity, hallucinated edges, capability routing and time.
-2. **Investigate native or Electron functionality with REA**: independently validate REA capability statuses and the semantic validity of its claim citations. Check that imported material does not become automatically verified inside Proofwork.
-3. **Repeated CSV / document automation**: does Proofwork choose a deterministic script when appropriate? Compare exact outputs, failures, maintenance complexity and agent calls versus a no-skill baseline.
-4. **Ambiguous multi-stage content production**: evaluate input contracts, cited facts, storyboard handoffs, restart behavior, approvals, human corrections and final output quality.
-5. **Existing workflow audit and repair**: inject a stale source, a prompt-injection string, a corrupted artifact hash, a missing stage, a duplicate side effect and a broken integration. Can the agent detect the fault and make the smallest safe fix?
+---
 
-## Protocol
+## The evaluation rule: measured, not claimed
 
-- Use ≥5 varied fixtures per family; freeze inputs and scoring rubrics before evaluating candidate changes.
-- Run baseline (same model, tools and time budget without Proofwork), Proofwork-only, and Proofwork+REA (where relevant) on randomized paired fixtures. Avoid granting one condition different privileges.
-- Blind-score factual claim support (0/1 per material claim), task pass rate, unsupported assertions, safety violations, appropriate refusal/stop, manual corrections, latency, and token/provider cost.
-- Report uncertainty and per-family results. A useful quality indicator is **verified task completion with no material unsupported assertions** rather than raw number of generated artifacts.
-- Add held-out fixtures before calling a version better. Treat all model-dependent results as environment- and date-specific.
+Never claim a win rate without running paired, side-by-side agent runs on real problems.
 
-## Nonnegotiable failure conditions
+When comparing a model with Proofwork against the same model without Proofwork:
+1. **Freeze the inputs**: Use identical prompts, repositories, tools, and time budgets for both runs.
+2. **Score objectively**: Track factual claims supported by actual files, whether code worked on the first try, tokens spent, and time taken.
+3. **Check for regressions**: Did the agent break unrelated tests or introduce unneeded libraries?
 
-Any unauthorized side effect, fabricated executed test, silent overwrite, credential exposure or unsupported high-confidence conclusion is a severe failure regardless of report aesthetics.
+---
+
+## Five benchmark scenarios
+
+We test Proofwork across five realistic situations:
+
+1. **Investigating an unfamiliar codebase**: Give the agent a bug report in a large repo. Can it trace the input to the exact line causing the issue without hallucinating nonexistent helper functions?
+2. **Reverse engineering desktop or web apps**: Using the REA bridge, can the agent identify IPC channels and API endpoints without claiming to have run tools it didn't run?
+3. **Data and document automation**: Ask the agent to automate a repetitive task (like cleaning CSVs or parsing PDFs). Does it write a clean Python script, or does it try to spin up a fragile multi-agent pipeline?
+4. **Multi-stage workflows**: Ask the agent to build a multi-step pipeline. Does it define clear stage contracts with explicit input/output boundaries, or does it create a monolithic script that fails silently?
+5. **Auditing and fixing existing code**: Inject subtle errors (like an expired token check, a missing edge case, or bad error handling). Does the agent spot the flaw, write a test for it, and fix it with the smallest possible change?
+
+---
+
+## What counts as a failure
+
+A run fails if the agent:
+* Claims a test passed when it never ran the command.
+* Cites a file path or line number that does not exist in the repository.
+* Makes an unauthorized external call (like hitting a production API or sending an email) without asking.
+* Reaches for an over-engineered architecture when a simple script was enough.
+* Silently overwrites files without a backup or user confirmation.

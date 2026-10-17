@@ -1,67 +1,68 @@
-# Architecture Decision Record: Proofwork System Design
+# Architecture and design decisions
 
-## 1. Architectural Options Considered
+Why Proofwork is built as a lightweight skill, not a massive prompt or a cloud service.
 
-| Architecture | Advantage | Outcome |
+---
+
+## Why Proofwork exists
+
+Most AI coding agents fail in predictable ways:
+1. They jump straight into editing files before reading how your system actually works.
+2. They invent explanations that sound plausible but aren't supported by the code.
+3. They reach for complex architectures (like five cooperating background agents) when a 20-line Python script solves the problem cleanly.
+4. They tell you everything works without running a single test.
+
+Proofwork adds guardrails to stop that. It gives agents a simple sequence: understand the problem, check evidence, pick the simplest fix, write code, run tests, and report what actually happened.
+
+---
+
+## Decisions we made and options we rejected
+
+| Option | What we chose | Why |
 |---|---|---|
-| Merge REA and Systemcraft SKILL.md verbatim | Single large skill | **Reject.** REA specialized investigation demands dedicated instructions, 13-capability routing, and tool providers. Overlapping agent instructions produce brittle tool selection. |
-| Replace REA with a generic checklist | Minimal footprint | **Reject.** Sacrifices binary, application, firmware, HAR, and provider depth, alongside structured evidence ledgers. |
-| Always spawn a multi-agent team | Impressive demonstration | **Reject.** Adds latency, token expense, race conditions, and authority confusion where a single script or agent suffices. |
-| Proofwork front door + integrated Systemcraft + decoupled REA specialist + provenance bridge | Focused default, deep opt-in capability, and compatible original source | **Adopt.** Lightweight path without REA; authorized specialist route when needed; separate verified scopes. |
+| Merge REA and Systemcraft into one massive file | **Rejected** | REA is built for deep reverse engineering (binaries, Electron apps, IPC, network traffic). Shoving all those instructions into every routine coding prompt adds token waste and confuses the model. |
+| Replace REA with a generic research checklist | **Rejected** | A checklist is useless when you actually need deep binary decompilation or network traffic capture. Keeping REA as a decoupled optional tool gives you forensic depth without daily prompt bloat. |
+| Spin up a swarm of background agents by default | **Rejected** | Multi-agent swarms look great in demos, but in production they burn tokens, introduce race conditions, and create confusing failure modes. Default to one capable agent and deterministic scripts. |
+| Lightweight front door with an optional evidence ledger | **Accepted** | Proofwork works out of the box with standard Python. If you want deep forensics, connect REA. If you want an audit trail, use the CLI ledger. |
 
 ---
 
-## 2. Theoretical Formulation and State Model
+## How the evidence ledger works
 
-Proofwork formalizes agent-environment interactions as a state-constrained transition system with an append-only evidence ledger:
+The evidence ledger (`proof.py`) is intentionally boring.
 
-$$\mathcal{M} = \langle \mathcal{S}, \mathcal{A}, \mathcal{O}, \mathcal{T}, \Omega, \mathcal{L} \rangle$$
+It is **not** a blockchain, a cloud database, or a tamper-proof cryptographic audit log. It is a local directory containing:
+* A `case.json` file storing metadata (questions, targets, claims, decisions, test logs).
+* An `evidence/` folder storing copies of files you referenced.
+* SHA-256 hashes of every copied file.
 
-Where:
-* $\mathcal{S}$ represents repository states and dependencies.
-* $\mathcal{A}$ represents agent actions (file reads, AST traversal, script generation, test runs).
-* $\mathcal{O}$ represents the observation space emitted by environment processes and tools.
-* $\mathcal{T}: \mathcal{S} \times \mathcal{A} \to \mathcal{S}$ defines state transitions under modifications.
-* $\Omega: \mathcal{S} \times \mathcal{A} \to \mathcal{O}$ defines observation emission probabilities.
-* $\mathcal{L}$ represents the local evidence snapshot ledger.
+When you run `python3 skills/proofwork/scripts/proof.py check ./cases/your-case`, it hashes the files on disk and compares them against `case.json`. If you accidentally edited an evidence file, swapped a test log, or broke a path, the check fails.
 
-### 2.1 Evidence Tuple Semantics
+### What it guarantees
+* It catches accidental file modifications, file drift, and stale test outputs.
+* It ensures claims link to real files with line numbers.
+* It forces the agent to record an alternative hypothesis and a falsification test before marking a claim as observed.
+* It stops directory traversal attacks by validating that paths stay inside the case directory.
 
-Every discrete observation admitted into the reasoning trace is captured as a tuple:
-
-$$\mathbf{e}_k = \langle \tau_k, \mathbf{uri}_k, \mathbf{h}_k, \mathbf{c}_k, \mathcal{V}_k \rangle$$
-
-Where:
-* $\tau_k \in \{\text{source}, \text{observation}, \text{test-log}, \text{artifact}\}$ denotes the artifact category.
-* $\mathbf{uri}_k$ represents the immutable canonical locator within the case container.
-* $\mathbf{h}_k = \text{SHA256}(\text{bytes}_k)$ represents the cryptographic digest computed at ingestion time $t_k$.
-* $\mathbf{c}_k$ denotes the textual context or line-range bounds.
-* $\mathcal{V}_k \in \{0, 1\}$ represents the verification state under cyclic integrity audits.
-
-### 2.2 Adversarial Falsification Invariant
-
-An empirical claim $C_i \in \mathcal{C}$ asserting behavioral properties of target code is prohibited from entering status `observed` unless it satisfies Popperian falsifiability criteria:
-
-$$\text{Status}(C_i) = \text{observed} \implies \left( E(C_i) \neq \emptyset \;\land\; H_{\text{alt}}(C_i) \neq \emptyset \;\land\; F(C_i) \neq \emptyset \right)$$
-
-Where:
-* $E(C_i) \subseteq \{\mathbf{e}_1, \dots, \mathbf{e}_n\}$ denotes non-empty supporting cryptographic evidence references.
-* $H_{\text{alt}}(C_i)$ denotes an explicitly articulated counter-hypothesis or competing explanation.
-* $F(C_i)$ denotes a concrete operational falsifier (a deterministic test or observation that disproves the claim).
+### What it does not guarantee
+* It does not prove a claim is factually true. A hash only proves the bytes haven't changed since they were saved.
+* It does not execute tests. The `test` command stores logs that you or the agent provide.
+* It does not grant permissions. The `approve` command is a notebook entry for humans reviewing the work, not an IAM role.
+* It does not protect against someone with write access who deliberately edits both the file and the hash in `case.json`.
 
 ---
 
-## 3. Trust Boundaries and Limitations
+## The six-stage workflow
 
-1. **Snapshot Ledger vs Append-Only Chains**: Evidence files are copied into a local case folder and SHA-256 digests are recorded in `case.json`. This detects accidental drift or tampering on disk. It is not an immutable, externally anchored blockchain; an attacker with write access to the filesystem can modify both evidence and digests simultaneously.
-2. **Recorded Test Logs vs Sandboxed Execution**: The `test` command registers operator-supplied test logs and checks reported exit codes. It does not independently sandbox or execute test binaries. A clean exit code ($0$) verifies that the recorded run completed, not that test coverage was semantically exhaustive.
-3. **Documentary Approvals**: The `approve` command logs human consent for an audit trail. It does not generate operating system permissions or network credentials.
-4. **REA Ingestion**: Provenance imported from REA via `import-rea` attributes upstream findings with SHA-256 digests; it does not automatically certify semantic truth.
+Proofwork guides agents through six gates:
 
----
+```text
+Scope -> Investigate -> Decide -> Build -> Verify -> Deliver
+```
 
-## 4. Verification Status and Next Validation Steps
-
-* **Verified locally**: Standard-library import, ledger validation, evidence hash tamper detection, invalid reference rejection, adversarial claim schema enforcement, overwrite protection, REA bridge attribution, and structural scaffold/audit checks.
-* **Not yet verified**: Statistical model adherence across frontier clients, latency on large monorepos, and agent task completion lift on public benchmarks.
-* **Next milestone**: Execute paired evaluations on 20-50 real GitHub issues with and without Proofwork to measure factual correctness, token efficiency, and regression rates.
+1. **Scope**: Define the exact question, target directory, and boundaries. If an action needs human sign-off (like touching production databases), flag it here.
+2. **Investigate**: Trace one real input to its output. Save evidence files with SHA-256 hashes. For every claim, require an alternative explanation and a way to disprove it.
+3. **Decide**: Choose the simplest approach. Document at least one rejected alternative and a condition that would make you revisit the choice.
+4. **Build**: Write a minimal vertical slice. If you need a multi-stage workflow, use `scaffold.py` to generate explicit contracts between steps.
+5. **Verify**: Run tests and record the output. Check both success cases and failure cases.
+6. **Deliver**: Summarize what was inspected, what changed, what was tested, and what risks remain.
