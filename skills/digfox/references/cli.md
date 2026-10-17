@@ -1,11 +1,11 @@
-# Proofwork CLI cookbook
+# Digfox CLI cookbook
 
 Works on macOS, Linux, Windows with Python 3.10+; no third-party dependencies.
 
 The CLI does **not** research on its own, evaluate claims semantically, run submitted code, or independently attest a test run. It maintains an inspectable integrity ledger.
 
 ```sh
-SKILL=/path/to/proofwork/skills/proofwork
+SKILL=/path/to/digfox/skills/digfox
 python3 "$SKILL/scripts/proof.py" doctor
 python3 "$SKILL/scripts/proof.py" init \
   --out ./cases/sample --intent build \

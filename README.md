@@ -1,6 +1,6 @@
-# Proofwork
+# Digfox
 
-> **TL;DR:** Proofwork is an open-source skill that stops AI coding agents from guessing. It forces them to trace actual evidence, challenge their own assumptions, pick the simplest fix, and prove it works with real tests before touching your code.
+> **TL;DR:** Digfox is an open-source skill that stops AI coding agents from guessing. It forces them to trace actual evidence, challenge their own assumptions, pick the simplest fix, and prove it works with real tests before touching your code.
 
 Works with Codex, Claude Code, and Cursor. Built with standard Python 3.10+ (zero third-party dependencies, zero required cloud accounts).
 
@@ -12,9 +12,9 @@ You paste a bug report into your AI coding assistant. Within five seconds, the m
 
 You run it. It crashes immediately.
 
-We built Proofwork because we got tired of babysitting agents that write code before they understand what broke. Most agents fail because they lack basic engineering discipline: they jump straight into generation without verifying facts.
+We built Digfox because we got tired of babysitting agents that write code before they understand what broke. Most agents fail because they lack basic engineering discipline: they jump straight into generation without verifying facts.
 
-Proofwork adds guardrails that turn your agent into a disciplined engineer:
+Digfox adds guardrails that turn your agent into a disciplined engineer:
 
 * **Investigate first, code second:** The agent must inspect actual files and trace real inputs to outputs before modifying a single line of code.
 * **Challenge assumptions:** The agent cannot treat a bug theory as fact without documenting an alternative explanation and a concrete way to disprove it.
@@ -30,17 +30,17 @@ Everything runs locally with standard Python tools:
 
 ```bash
 # 1. Check your local environment
-python3 skills/proofwork/scripts/proof.py doctor
+python3 skills/digfox/scripts/proof.py doctor
 
 # 2. Start a new investigation case
-python3 skills/proofwork/scripts/proof.py init \
+python3 skills/digfox/scripts/proof.py init \
   --out ./cases/auth-demo \
   --question "Why does token refresh fail?" \
   --target "src/auth" \
   --intent build
 
 # 3. Save a snapshot of the code you inspected
-python3 skills/proofwork/scripts/proof.py evidence \
+python3 skills/digfox/scripts/proof.py evidence \
   --file src/auth/token.py \
   --kind source \
   --locator "token.py:15-30" \
@@ -48,7 +48,7 @@ python3 skills/proofwork/scripts/proof.py evidence \
   ./cases/auth-demo
 
 # 4. Record what you found, plus an alternative explanation and a test to disprove it
-python3 skills/proofwork/scripts/proof.py claim \
+python3 skills/digfox/scripts/proof.py claim \
   --statement "Token validation fails due to 2-second client clock skew" \
   --evidence E001 \
   --confidence observed \
@@ -58,7 +58,7 @@ python3 skills/proofwork/scripts/proof.py claim \
   ./cases/auth-demo
 
 # 5. Record your decision, what you rejected, and when to change your mind
-python3 skills/proofwork/scripts/proof.py decision \
+python3 skills/digfox/scripts/proof.py decision \
   --choose "Add 5-second clock skew tolerance window" \
   --instead-of "Bypass expiration check completely" "Force user re-authentication" \
   --why "Minimal standard-compliant fix with zero breaking API changes" \
@@ -68,17 +68,17 @@ python3 skills/proofwork/scripts/proof.py decision \
   ./cases/auth-demo
 
 # 6. Verify case integrity and generate a readable markdown report
-python3 skills/proofwork/scripts/proof.py check ./cases/auth-demo
-python3 skills/proofwork/scripts/proof.py report ./cases/auth-demo
+python3 skills/digfox/scripts/proof.py check ./cases/auth-demo
+python3 skills/digfox/scripts/proof.py report ./cases/auth-demo
 ```
 
-When you run `report`, Proofwork generates a clean `REPORT.md` inside your case folder summarizing all consulted evidence, file hashes, competing theories, architectural choices, and test outputs.
+When you run `report`, Digfox generates a clean `REPORT.md` inside your case folder summarizing all consulted evidence, file hashes, competing theories, architectural choices, and test outputs.
 
 ---
 
 ## How it works under the hood
 
-Proofwork guides your agent through a strict six-stage sequence:
+Digfox guides your agent through a strict six-stage sequence:
 
 ```text
 Scope -> Investigate -> Decide -> Build -> Verify -> Deliver
@@ -118,18 +118,18 @@ We prefer to tell you what this tool does not do before you discover it in produ
 
 ---
 
-## Installing Proofwork
+## Installing Digfox
 
-Install Proofwork directly into your coding agent workspace:
+Install Digfox directly into your coding agent workspace:
 
 ```bash
-# Codex (.agents/skills/proofwork)
+# Codex (.agents/skills/digfox)
 python3 install.py --agent codex --project /path/to/your/project
 
-# Claude Code (.claude/skills/proofwork)
+# Claude Code (.claude/skills/digfox)
 python3 install.py --agent claude --project /path/to/your/project
 
-# Cursor (.cursor/skills/proofwork)
+# Cursor (.cursor/skills/digfox)
 python3 install.py --agent cursor --project /path/to/your/project
 
 # Preview what will be installed without touching files
@@ -145,10 +145,10 @@ python3 install.py --agent codex --project /path/to/your/project \
 ## Repository layout
 
 ```text
-proofwork/
+digfox/
 ├── install.py                             Agent skill installer (Codex, Claude, Cursor)
 ├── skills/
-│   └── proofwork/
+│   └── digfox/
 │       ├── SKILL.md                       Agent instructions and decision rules
 │       ├── scripts/
 │       │   ├── proof.py                   Evidence ledger CLI and report generator

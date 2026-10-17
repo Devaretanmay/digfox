@@ -1,8 +1,8 @@
-# How we evaluate Proofwork
+# How we evaluate Digfox
 
-Our unit tests prove that our Python scripts don't crash and that file hashes work. They don't prove that an AI agent using Proofwork writes better code, hallucinates less, or builds simpler systems.
+Our unit tests prove that our Python scripts don't crash and that file hashes work. They don't prove that an AI agent using Digfox writes better code, hallucinates less, or builds simpler systems.
 
-Here is how we measure whether Proofwork actually improves agent performance on real tasks.
+Here is how we measure whether Digfox actually improves agent performance on real tasks.
 
 ---
 
@@ -10,7 +10,7 @@ Here is how we measure whether Proofwork actually improves agent performance on 
 
 Never claim a win rate without running paired, side-by-side agent runs on real problems.
 
-When comparing a model with Proofwork against the same model without Proofwork:
+When comparing a model with Digfox against the same model without Digfox:
 1. **Freeze the inputs**: Use identical prompts, repositories, tools, and time budgets for both runs.
 2. **Score objectively**: Track factual claims supported by actual files, whether code worked on the first try, tokens spent, and time taken.
 3. **Check for regressions**: Did the agent break unrelated tests or introduce unneeded libraries?
@@ -19,7 +19,7 @@ When comparing a model with Proofwork against the same model without Proofwork:
 
 ## Five benchmark scenarios
 
-We test Proofwork across five realistic situations:
+We test Digfox across five realistic situations:
 
 1. **Investigating an unfamiliar codebase**: Give the agent a bug report in a large repo. Can it trace the input to the exact line causing the issue without hallucinating nonexistent helper functions?
 2. **Reverse engineering desktop or web apps**: Using the REA bridge, can the agent identify IPC channels and API endpoints without claiming to have run tools it didn't run?
