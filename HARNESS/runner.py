@@ -311,6 +311,13 @@ class BenchmarkRunner:
         diff_proc = subprocess.run(["git", "diff"], cwd=workspace_dir, capture_output=True, text=True)
         patch_text = diff_proc.stdout
 
+        # Save patch to HARNESS/patches directory
+        patch_dir = os.path.abspath("HARNESS/patches")
+        os.makedirs(patch_dir, exist_ok=True)
+        patch_path = os.path.join(patch_dir, f"{task_id}_{condition}_trial{trial}.patch")
+        with open(patch_path, "w", encoding="utf-8") as pf:
+            pf.write(patch_text)
+
         # Parse commands run by inspecting stderr and stdout
         commands_run = re.findall(r"exec\s*\n\s*(/bin/zsh[^\n]+)", combined_output)
         if not commands_run:
@@ -404,18 +411,25 @@ class BenchmarkRunner:
 
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Run live autonomous agent benchmarks.")
+    parser.add_argument("--task", default="task1_pydantic_12884", help="Task filter")
+    parser.add_argument("--condition", default="fox_v1.1", help="Condition (baseline, fox_v1.0, fox_v1.1)")
+    parser.add_argument("--start-trial", type=int, default=5, help="Starting trial number")
+    parser.add_argument("--end-trial", type=int, default=5, help="Ending trial number")
+    args = parser.parse_args()
+
     runner = BenchmarkRunner(
         manifests_dir="TASK_MANIFESTS",
         fixtures_dir="HARNESS/fixtures",
         logs_dir="HARNESS/logs",
         results_csv="RESULTS.csv"
     )
-    # Rerun Task 1 (Pydantic #12884) with updated Fox skill
     runner.run_benchmark(
-        task_filter="task1_pydantic_12884",
-        start_trial=4,
-        end_trial=4,
-        conditions=["fox_v1.1"]
+        task_filter=args.task,
+        start_trial=args.start_trial,
+        end_trial=args.end_trial,
+        conditions=[args.condition]
     )
 
 
