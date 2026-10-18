@@ -165,24 +165,24 @@ class SkillTests(unittest.TestCase):
         installer.install("codex", project, force=True)
         self.assertFalse(sentinel.exists())
 
-    def test_installer_rea_integration_has_distinct_skills(self):
-        project = self.root / "project"
+    def test_installer_claude_and_cursor_targets(self):
+        project = self.root / "project2"
         project.mkdir()
-        rea = self.root / "rea-investigate"
-        (rea / "skills" / "rea-investigate" / "scripts").mkdir(parents=True)
-        src = rea / "skills" / "rea-investigate"
-        (src / "SKILL.md").write_text("---\nname: rea-investigate\ndescription: investigation\n---\n")
-        (src / "scripts" / "case.py").write_text("# REA original")
-        dests = installer.install("claude", project, rea_path=rea)
-        self.assertEqual([p.name for p in dests], ["fox", "rea-investigate"])
-        self.assertIn("# REA original", (dests[1] / "scripts" / "case.py").read_text())
+        dests_claude = installer.install("claude", project)
+        self.assertEqual(dests_claude[0], project.resolve() / ".claude/skills/fox")
+        self.assertTrue((dests_claude[0] / "SKILL.md").is_file())
 
-    def test_installer_invalid_rea_keeps_project_unchanged(self):
-        project = self.root / "project"
+        dests_cursor = installer.install("cursor", project)
+        self.assertEqual(dests_cursor[0], project.resolve() / ".cursor/skills/fox")
+        self.assertTrue((dests_cursor[0] / "SKILL.md").is_file())
+
+    def test_installer_validation_and_errors(self):
+        project = self.root / "project3"
         project.mkdir()
         with self.assertRaises(ValueError):
-            installer.install("cursor", project, rea_path=self.root)
-        self.assertFalse((project / ".cursor/skills").exists())
+            installer.install("invalid-agent", project)
+        with self.assertRaises(ValueError):
+            installer.install("codex", self.root / "does-not-exist")
 
 if __name__ == "__main__":
     unittest.main()
