@@ -84,20 +84,18 @@ When you run `report`, Digfox compiles a clean `REPORT.md` inside your case fold
 
 ## How it works under the hood
 
-Digfox guides your agent through a strict six-stage sequence:
+Digfox guides coding agents through four pragmatic operating principles:
 
 ```text
-Scope -> Investigate -> Decide -> Build -> Verify -> Deliver
+Ground -> Trace -> Change -> Verify
 ```
 
-| Stage | Goal | What is required | What blocks progress |
+| Step | Goal | What the agent does | What blocks progress |
 |---|---|---|---|
-| **1. Scope** | Define boundaries and goals | Clear question, target path, and intent | Unbounded or unauthorized work |
-| **2. Investigate** | Trace actual sources | Evidence snapshots with SHA-256 digests | Speculative claims lacking citations |
-| **3. Decide** | Choose the minimal approach | Documented alternatives and revisit rules | Unjustified single-option complexity |
-| **4. Build** | Implement the minimal slice | Smallest working change with no side effects | Unreviewed mutations or scope creep |
-| **5. Verify** | Run actual tests | Real test logs with both positive and negative checks | Missing failure or boundary test logs |
-| **6. Deliver** | Summarize the results | Verified evidence hashes and declared risks | Unchecked hashes or unproven claims |
+| **1. Ground** | Establish truth before editing | Inspects existing codebase and runs an executable reproducer for defects | Editing code based on assumed state |
+| **2. Trace** | Find where behavior actually executes | Follows control flow across architectural boundaries (Python to Rust, API to DB, queues, parsers) | Stopping at superficial API wrappers |
+| **3. Change** | Solve root cause with minimal diff | Fixes the component responsible for the defect; keeps diffs surgical | Bloated refactors, wrappers, or added dependencies |
+| **4. Verify** | Prove correctness with observable evidence | Re-runs reproducer, checks regressions, tests nested structures and output formats | Fabricated test claims or unexecuted suites |
 
 ---
 

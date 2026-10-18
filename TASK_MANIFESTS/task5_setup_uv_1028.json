@@ -1,0 +1,25 @@
+{
+  "task_id": "task5_setup_uv_1028",
+  "repository": "astral-sh/setup-uv",
+  "repository_url": "https://github.com/astral-sh/setup-uv",
+  "issue_url": "https://github.com/astral-sh/setup-uv/issues/1028",
+  "target_component": "dist/save-cache/index.cjs error handling",
+  "commit_sha": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
+  "runtime_requirements": {
+    "language": "javascript",
+    "version": ">=18.0.0",
+    "packages": ["@actions/cache", "esbuild"]
+  },
+  "task_instructions": "In dist/save-cache/index.cjs, bundling transforms ReserveCacheError into class _ReserveCacheError. Consequently, ReserveCacheError.name becomes '_ReserveCacheError', while instances have name === 'ReserveCacheError'. The check typedError.name === ReserveCacheError.name fails, causing expected concurrent cache reservation races to be logged as warning annotations in GitHub Actions. Fix the error handling to correctly recognize ReserveCacheError.",
+  "expected_behavior": "When a ReserveCacheError occurs during cache save, the handler must match it as a benign race and log via info rather than emitting a warning annotation.",
+  "test_commands": [
+    "node --test test/*.test.js"
+  ],
+  "hidden_acceptance_tests": "tests/test_task5_hidden.js",
+  "execution_budget": {
+    "timeout_seconds": 600,
+    "max_steps": 30,
+    "token_limit": 100000
+  },
+  "evaluation_status": "validated"
+}

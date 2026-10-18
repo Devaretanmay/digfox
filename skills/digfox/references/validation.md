@@ -1,5 +1,40 @@
 # Validation playbook
 
+## Common sources of incomplete fixes
+
+When testing changes, prioritize checks based on the component's failure modes:
+
+1. **Nested objects and recursive execution**
+   - High-level wrappers often intercept root objects but miss nested children.
+   - Test recursive graphs, child models, and deeply nested lists or dictionaries.
+   - Check if internal library routines bypass public entrypoints when processing children.
+
+2. **Multiple output formats**
+   - Serializers and formatters usually expose multiple representations (for example: in-memory dictionaries, JSON strings, YAML, and binary streams).
+   - Test every supported output format to prevent format-specific omissions or duplicate keys.
+
+3. **Native extensions and delegated engines**
+   - When code calls into compiled C, Rust, or native modules, data is transferred across runtime boundaries.
+   - Verify that the native extension actually receives the patched data structure and does not fall back to unpatched defaults.
+
+4. **Async work, queues, and background workers**
+   - Changes in request handlers may not propagate to background workers, queues, or scheduled tasks.
+   - Verify that serialized job payloads preserve required fields and that worker execution paths pass.
+
+5. **Configuration-dependent behavior**
+   - Test with non-default flags, such as `extra='allow'`, strict validation modes, or custom aliases.
+   - Confirm that configuration options do not disable or override the fix.
+
+6. **Error paths and boundary conditions**
+   - Test invalid inputs, missing fields, null values, and type mismatches.
+   - Ensure exceptions are raised cleanly without leaving dangling resources or corrupted state.
+
+7. **State mutation and repeated execution**
+   - Verify that calling an operation multiple times on the same object produces consistent results.
+   - Check that serialization or transformation routines do not mutate the input model or source instance.
+
+Do not require every test category for every task. Select checks based on the affected component and its failure risks.
+
 ## Test matrix
 
 | Test | Expected behavior |

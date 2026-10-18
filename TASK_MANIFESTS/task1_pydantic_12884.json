@@ -1,0 +1,25 @@
+{
+  "task_id": "task1_pydantic_12884",
+  "repository": "pydantic/pydantic",
+  "repository_url": "https://github.com/pydantic/pydantic",
+  "issue_url": "https://github.com/pydantic/pydantic/issues/12884",
+  "target_component": "BaseModel serialization (model_dump, model_dump_json)",
+  "commit_sha": "d38402b8b9816664d50eb73ebfefbcbe918231c5",
+  "runtime_requirements": {
+    "language": "python",
+    "version": ">=3.10",
+    "packages": ["pydantic>=2.0"]
+  },
+  "task_instructions": "When a Pydantic model is configured with extra='allow' and a field has an alias, supplying both the alias key and the field name key in input data causes model_dump() to overwrite the validated field value with the extra field value during serialization. Fix serialization so that validated field values are preserved and extra fields do not overwrite declared fields.",
+  "expected_behavior": "model_dump() must output the validated field value for the declared field, and extra fields must not overwrite the declared field. When by_alias=True, non-colliding extra fields can coexist. model_dump_json() must produce valid JSON with unique keys.",
+  "test_commands": [
+    "python3 -m unittest discover -s . -p 'test_*.py'"
+  ],
+  "hidden_acceptance_tests": "tests/test_task1_hidden.py",
+  "execution_budget": {
+    "timeout_seconds": 600,
+    "max_steps": 30,
+    "token_limit": 100000
+  },
+  "evaluation_status": "validated"
+}

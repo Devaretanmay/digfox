@@ -1,0 +1,25 @@
+{
+  "task_id": "task2_pydantic_13734",
+  "repository": "pydantic/pydantic",
+  "repository_url": "https://github.com/pydantic/pydantic",
+  "issue_url": "https://github.com/pydantic/pydantic/issues/13734",
+  "target_component": "pydantic_core.to_jsonable_python fallback serialization",
+  "commit_sha": "a78cb1460c5c4d1d916021e1d3eef4a06bbd9220",
+  "runtime_requirements": {
+    "language": "python",
+    "version": ">=3.10",
+    "packages": ["pydantic_core>=2.0"]
+  },
+  "task_instructions": "Serializing mock.call objects with to_jsonable_python raises TypeError: '_Call' object is not an instance of 'SchemaSerializer'. This occurs because accessing __pydantic_serializer__ on unittest.mock.call returns another mock rather than raising AttributeError. Ensure that serializer fallback logic safely handles objects whose __pydantic_serializer__ attribute is not a valid SchemaSerializer.",
+  "expected_behavior": "When an object has an invalid or non-SchemaSerializer __pydantic_serializer__ attribute, to_jsonable_python must delegate to the fallback callable rather than terminating with a TypeError.",
+  "test_commands": [
+    "python3 -m unittest discover -s . -p 'test_*.py'"
+  ],
+  "hidden_acceptance_tests": "tests/test_task2_hidden.py",
+  "execution_budget": {
+    "timeout_seconds": 600,
+    "max_steps": 30,
+    "token_limit": 100000
+  },
+  "evaluation_status": "validated"
+}

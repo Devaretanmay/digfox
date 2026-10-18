@@ -1,0 +1,3 @@
+task_id,condition,trial,status,score,correctness,regression_safety,evidence_quality,decision_discipline,verification_integrity,elapsed_seconds,prompt_tokens,completion_tokens,total_tokens,unsupported_claims,false_test_reports,tool_calls
+task1_pydantic_12884,baseline,1,PASSED,100.0,40.0,20.0,15.0,15.0,10.0,64.02,28576,12246,40823,0,0,0
+task1_pydantic_12884,digfox,1,PASSED,100.0,40.0,20.0,15.0,15.0,10.0,54.79,28884,12379,41264,0,0,0

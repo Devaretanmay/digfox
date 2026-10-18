@@ -37,3 +37,21 @@ Treat the example as a convention, not an executable schema. `status` must disti
 ## Review design
 
 Use checkpoints where the next action would propagate an error or create an external effect. Example: verify research sources before drafting a public report; verify customer identity before emailing; review a plan before running a destructive migration. Every stage should permit resuming from the last trustworthy output.
+
+## Workflow scaffolding tools
+
+For recurring tasks requiring explicit stage separation, Digfox provides optional scaffolding utilities:
+
+```bash
+# Generate a staged workflow directory
+python3 skills/digfox/scripts/scaffold.py my-pipeline \
+  --output ./workflows \
+  --stages collect,transform,verify
+
+# Audit workflow structure and stage contracts
+python3 skills/digfox/scripts/audit.py ./workflows/my-pipeline
+```
+
+- `scaffold.py` creates standardized stage folders (`01-collect`, `02-transform`, `03-verify`) with stub manifests and instructions.
+- `audit.py` checks that all stages contain valid input/output definitions and that declared output files exist.
+- Routine repository code changes should not create workflow folders; use standard Git commits and tests.

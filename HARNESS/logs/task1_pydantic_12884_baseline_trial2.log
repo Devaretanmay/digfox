@@ -1,0 +1,1183 @@
+Task: task1_pydantic_12884
+Condition: baseline
+Trial: 2
+Elapsed Time: 65.07s
+Total Tokens: 33880
+Exit Code: 0
+Passed: False
+Total Score: 50.0
+
+=== PRODUCED GIT DIFF ===
+diff --git a/pydantic/main.py b/pydantic/main.py
+index 2ed62e5f..2cda3a0d 100644
+--- a/pydantic/main.py
++++ b/pydantic/main.py
+@@ -472,8 +472,25 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
+         Returns:
+             A dictionary representation of the model.
+         """
++        serialization_value = self
++        if self.__pydantic_extra__:
++            serialize_by_alias = (
++                by_alias if by_alias is not None else self.model_config.get('serialize_by_alias', False)
++            )
++            field_keys = {
++                (field.serialization_alias if field.serialization_alias is not None else name)
++                if serialize_by_alias
++                else name
++                for name, field in self.__pydantic_fields__.items()
++            }
++            if not self.__pydantic_extra__.keys().isdisjoint(field_keys):
++                serialization_value = BaseModel.__copy__(self)
++                serialization_value.__pydantic_extra__ = {
++                    key: value for key, value in self.__pydantic_extra__.items() if key not in field_keys
++                }
++
+         return self.__pydantic_serializer__.to_python(
+-            self,
++            serialization_value,
+             mode=mode,
+             by_alias=by_alias,
+             include=include,
+@@ -539,8 +556,25 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
+         Returns:
+             A JSON string representation of the model.
+         """
++        serialization_value = self
++        if self.__pydantic_extra__:
++            serialize_by_alias = (
++                by_alias if by_alias is not None else self.model_config.get('serialize_by_alias', False)
++            )
++            field_keys = {
++                (field.serialization_alias if field.serialization_alias is not None else name)
++                if serialize_by_alias
++                else name
++                for name, field in self.__pydantic_fields__.items()
++            }
++            if not self.__pydantic_extra__.keys().isdisjoint(field_keys):
++                serialization_value = BaseModel.__copy__(self)
++                serialization_value.__pydantic_extra__ = {
++                    key: value for key, value in self.__pydantic_extra__.items() if key not in field_keys
++                }
++
+         return self.__pydantic_serializer__.to_json(
+-            self,
++            serialization_value,
+             indent=indent,
+             ensure_ascii=ensure_ascii,
+             include=include,
+diff --git a/tests/pydantic_core b/tests/pydantic_core
+deleted file mode 120000
+index 3cc4ac11..00000000
+--- a/tests/pydantic_core
++++ /dev/null
+@@ -1 +0,0 @@
+-../pydantic-core/tests
+\ No newline at end of file
+
+=== TEST OUTPUT ===
+
+.....F....
+======================================================================
+FAIL: test_06_nested_models (__main__.TestTask1ComprehensiveAcceptance.test_06_nested_models)
+Check 6: Nested models with collision in inner model.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/tanmaydevare/Tanmay/Agent/REA/HARNESS/fixtures/task1_acceptance_suite.py", line 91, in test_06_nested_models
+    self.assertEqual(dumped['inner'].get('x'), 10)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 20 != 10
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.018s
+
+FAILED (failures=1)
+
+=== REGRESSION SUITE ===
+============================= test session starts ==============================
+platform darwin -- Python 3.14.7, pytest-9.1.1, pluggy-1.6.0
+rootdir: /private/tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2
+configfile: pyproject.toml
+plugins: cov-7.1.0, html-4.1.1, asyncio-1.4.0, metadata-3.1.1, trio-0.8.0, anyio-4.14.2, pytest_httpserver-1.1.5, langsmith-0.9.6, respx-0.23.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 153 items
+
+tests/test_aliases.py .................................................. [ 32%]
+..............s.....s..s.....ssssssssss..s.....s..s.....s..s.....s..s... [ 79%]
+..s..s.....ssssssssss..........                                          [100%]
+
+======================= 121 passed, 32 skipped in 0.18s ========================
+
+
+=== RAW CODEX STDOUT ===
+Fixed Issue #12884 in [pydantic/main.py](/tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2/pydantic/main.py:475).
+
+The serializers now remove colliding extras from a shallow serialization copy, ensuring declared fields take precedence without mutating the model.
+
+Validation:
+
+- `python3 reproduce_issue.py` — passed
+- `pytest -W ignore -o addopts="" tests/test_aliases.py` — 121 passed, 32 skipped
+- Ruff formatting and lint checks — passed
+- `git diff --check` — passed
+
+The pre-existing `tests/pydantic_core` deletion and untracked reproducer were preserved.
+
+=== RAW CODEX STDERR ===
+OpenAI Codex v0.163.0
+--------
+workdir: /tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2
+model: gpt-5.6-sol
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a14e20-3306-71e0-96db-e07008f1efdb
+--------
+user
+You are an autonomous software engineering agent working inside the pydantic/pydantic repository.
+Task: Fix the data serialization collision defect (Issue #12884) in `pydantic/main.py`.
+
+Problem Description:
+When a Pydantic model is configured with extra='allow' and a field has an alias, providing both an alias key and the field name key in input data causes `model.model_dump()` and `model.model_dump_json()` to overwrite the validated declared field value with the extra field value during serialization.
+
+Requirements:
+1. Run `python3 reproduce_issue.py` to observe the bug failure.
+2. Directly modify `pydantic/main.py` (specifically `BaseModel.model_dump` and `BaseModel.model_dump_json`) so that validated declared field values take precedence over colliding extra field keys.
+3. Do NOT create external wrappers or edit test files. You must fix the library code in `pydantic/main.py`.
+4. Run `python3 reproduce_issue.py` to confirm the fix works.
+5. Run `pytest -W ignore -o addopts="" tests/test_aliases.py` to verify no regressions.
+
+codex
+I’ll reproduce the failure first, inspect the serialization paths and repository guidance, then patch only `pydantic/main.py` and run both requested validations.
+exec
+/bin/zsh -lc "pwd && rg --files -g 'AGENTS.md' -g 'reproduce_issue.py' -g 'pydantic/main.py' | sort && git status --short && python3 reproduce_issue.py" in /tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2
+ exited 1 in 154ms:
+/private/tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2
+pydantic/main.py
+reproduce_issue.py
+ D tests/pydantic_core
+?? reproduce_issue.py
+model.x = 1
+model.model_extra = {'x': 2}
+model.model_dump() = {'x': 2}
+model.model_dump_json() = {'x': 2}
+FAILURE REPRODUCED: model.x overwritten by extra field value 2
+
+codex
+The defect reproduces exactly: the declared value is `1`, but both serializers emit the colliding extra value `2`. The worktree already contains an unrelated deleted `tests/pydantic_core` entry and the untracked reproducer; I’ll preserve both.
+exec
+/bin/zsh -lc "sed -n '1,220p' reproduce_issue.py
+rg -n \"def model_dump|def model_dump_json|__pydantic_serializer__|__pydantic_extra__\" pydantic/main.py | head -80
+sed -n '390,540p' pydantic/main.py" in /tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2
+ succeeded in 0ms:
+import sys
+import json
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class CollisionModel(BaseModel):
+    model_config = ConfigDict(extra='allow')
+    x: int = Field(alias='X')
+
+
+payload = {'X': 1, 'x': 2}
+model = CollisionModel.model_validate(payload)
+dumped = model.model_dump()
+json_dumped = json.loads(model.model_dump_json())
+print('model.x =', model.x)
+print('model.model_extra =', model.model_extra)
+print('model.model_dump() =', dumped)
+print('model.model_dump_json() =', json_dumped)
+
+if dumped.get('x') == 2 or json_dumped.get('x') == 2:
+    print('FAILURE REPRODUCED: model.x overwritten by extra field value 2')
+    sys.exit(1)
+elif dumped.get('x') == 1 and json_dumped.get('x') == 1:
+    print('SUCCESS: model.x preserved with validated value 1')
+    sys.exit(0)
+else:
+    print('UNEXPECTED OUTPUT:', dumped)
+    sys.exit(2)
+142:        __pydantic_serializer__: The `pydantic-core` `SchemaSerializer` used to dump instances of the model.
+148:        __pydantic_extra__: A dictionary containing extra values, if [`extra`][pydantic.config.ConfigDict.extra]
+201:    __pydantic_serializer__: ClassVar[SchemaSerializer]
+219:    """A wrapper around the `__pydantic_extra__` annotation, if explicitly annotated on a model.
+224:    __pydantic_extra__: Dict[str, Any] | None = _model_construction.NoInitField(init=False)  # noqa: UP006
+245:        __pydantic_serializer__ = _mock_val_ser.MockValSer(
+251:    __slots__ = '__dict__', '__pydantic_fields_set__', '__pydantic_extra__', '__pydantic_private__'
+304:        return self.__pydantic_extra__
+326:            and `__pydantic_extra__` fields. If `model_config.extra == 'ignore'` (the default), then all extra passed values are ignored.
+380:            _object_setattr(m, '__pydantic_extra__', _extra)
+419:                        if copied.__pydantic_extra__ is None:
+420:                            copied.__pydantic_extra__ = {}
+421:                        copied.__pydantic_extra__[k] = v
+427:    def model_dump(
+475:        return self.__pydantic_serializer__.to_python(
+493:    def model_dump_json(
+542:        return self.__pydantic_serializer__.to_json(
+662:        for attr in ('__pydantic_core_schema__', '__pydantic_validator__', '__pydantic_serializer__'):
+976:        _object_setattr(m, '__pydantic_extra__', copy(self.__pydantic_extra__))
+995:        _object_setattr(m, '__pydantic_extra__', deepcopy(self.__pydantic_extra__, memo=memo))
+1028:                # `__pydantic_extra__` can fail to be set if the model is not yet fully initialized.
+1031:                    pydantic_extra = object.__getattribute__(self, '__pydantic_extra__')
+1098:                    self.__pydantic_extra__[name] = value
+1132:            elif self.__pydantic_extra__ is not None and item in self.__pydantic_extra__:
+1133:                del self.__pydantic_extra__[item]
+1151:            '__pydantic_extra__': self.__pydantic_extra__,
+1158:        _object_setattr(self, '__pydantic_extra__', state.get('__pydantic_extra__', {}))
+1178:                    and (self.__pydantic_extra__ or {}) == (other.__pydantic_extra__ or {})
+1251:        extra = self.__pydantic_extra__
+1273:        # `__pydantic_extra__` can fail to be set if the model is not yet fully initialized.
+1278:            pydantic_extra = object.__getattribute__(self, '__pydantic_extra__')
+1560:        if self.__pydantic_extra__ is None:
+1563:            extra = self.__pydantic_extra__.copy()
+1564:            for k in list(self.__pydantic_extra__):
+1568:                if k in self.__pydantic_extra__:  # k must have come from extra
+
+        return m
+
+    def model_copy(self, *, update: Mapping[str, Any] | None = None, deep: bool = False) -> Self:
+        """!!! abstract "Usage Documentation"
+            [`model_copy`](../concepts/models.md#model-copy)
+
+        Returns a copy of the model.
+
+        !!! note
+            The underlying instance's [`__dict__`][object.__dict__] attribute is copied. This
+            might have unexpected side effects if you store anything in it, on top of the model
+            fields (e.g. the value of [cached properties][functools.cached_property]).
+
+        Args:
+            update: Values to change/add in the new model. Note: the data is not validated
+                before creating the new model. You should trust this data.
+            deep: Set to `True` to make a deep copy of the model.
+
+        Returns:
+            New model instance.
+        """
+        copied = self.__deepcopy__() if deep else self.__copy__()
+        if update:
+            if self.model_config.get('extra') == 'allow':
+                for k, v in update.items():
+                    if k in self.__pydantic_fields__:
+                        copied.__dict__[k] = v
+                    else:
+                        if copied.__pydantic_extra__ is None:
+                            copied.__pydantic_extra__ = {}
+                        copied.__pydantic_extra__[k] = v
+            else:
+                copied.__dict__.update(update)
+            copied.__pydantic_fields_set__.update(update.keys())
+        return copied
+
+    def model_dump(
+        self,
+        *,
+        mode: Literal['json', 'python'] | str = 'python',
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        context: Any | None = None,
+        by_alias: bool | None = None,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        exclude_computed_fields: bool = False,
+        round_trip: bool = False,
+        warnings: bool | Literal['none', 'warn', 'error'] = True,
+        fallback: Callable[[Any], Any] | None = None,
+        serialize_as_any: bool = False,
+        polymorphic_serialization: bool | None = None,
+    ) -> dict[str, Any]:
+        """!!! abstract "Usage Documentation"
+            [`model_dump`](../concepts/serialization.md#python-mode)
+
+        Generate a dictionary representation of the model, optionally specifying which fields to include or exclude.
+
+        Args:
+            mode: The mode in which `to_python` should run.
+                If mode is 'json', the output will only contain JSON serializable types.
+                If mode is 'python', the output may contain non-JSON-serializable Python objects.
+            include: A set of fields to include in the output.
+            exclude: A set of fields to exclude from the output.
+            context: Additional context to pass to the serializer.
+            by_alias: Whether to use the field's alias in the dictionary key if defined.
+            exclude_unset: Whether to exclude fields that have not been explicitly set.
+            exclude_defaults: Whether to exclude fields that are set to their default value.
+            exclude_none: Whether to exclude fields that have a value of `None`.
+            exclude_computed_fields: Whether to exclude computed fields.
+                While this can be useful for round-tripping, it is usually recommended to use the dedicated
+                `round_trip` parameter instead.
+            round_trip: If True, dumped values should be valid as input for non-idempotent types such as Json[T].
+            warnings: How to handle serialization errors. False/"none" ignores them, True/"warn" logs errors,
+                "error" raises a [`PydanticSerializationError`][pydantic_core.PydanticSerializationError].
+            fallback: A function to call when an unknown value is encountered. If not provided,
+                a [`PydanticSerializationError`][pydantic_core.PydanticSerializationError] error is raised.
+            serialize_as_any: Whether to serialize fields with duck-typing serialization behavior.
+            polymorphic_serialization: Whether to use model and dataclass polymorphic serialization for this call.
+
+        Returns:
+            A dictionary representation of the model.
+        """
+        return self.__pydantic_serializer__.to_python(
+            self,
+            mode=mode,
+            by_alias=by_alias,
+            include=include,
+            exclude=exclude,
+            context=context,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none,
+            exclude_computed_fields=exclude_computed_fields,
+            round_trip=round_trip,
+            warnings=warnings,
+            fallback=fallback,
+            serialize_as_any=serialize_as_any,
+            polymorphic_serialization=polymorphic_serialization,
+        )
+
+    def model_dump_json(
+        self,
+        *,
+        indent: int | None = None,
+        ensure_ascii: bool = False,
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        context: Any | None = None,
+        by_alias: bool | None = None,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        exclude_computed_fields: bool = False,
+        round_trip: bool = False,
+        warnings: bool | Literal['none', 'warn', 'error'] = True,
+        fallback: Callable[[Any], Any] | None = None,
+        serialize_as_any: bool = False,
+        polymorphic_serialization: bool | None = None,
+    ) -> str:
+        """!!! abstract "Usage Documentation"
+            [`model_dump_json`](../concepts/serialization.md#json-mode)
+
+        Generates a JSON representation of the model using Pydantic's `to_json` method.
+
+        Args:
+            indent: Indentation to use in the JSON output. If None is passed, the output will be compact.
+            ensure_ascii: If `True`, the output is guaranteed to have all incoming non-ASCII characters escaped.
+                If `False` (the default), these characters will be output as-is.
+            include: Field(s) to include in the JSON output.
+            exclude: Field(s) to exclude from the JSON output.
+            context: Additional context to pass to the serializer.
+            by_alias: Whether to serialize using field aliases.
+            exclude_unset: Whether to exclude fields that have not been explicitly set.
+            exclude_defaults: Whether to exclude fields that are set to their default value.
+            exclude_none: Whether to exclude fields that have a value of `None`.
+            exclude_computed_fields: Whether to exclude computed fields.
+                While this can be useful for round-tripping, it is usually recommended to use the dedicated
+                `round_trip` parameter instead.
+            round_trip: If True, dumped values should be valid as input for non-idempotent types such as Json[T].
+            warnings: How to handle serialization errors. False/"none" ignores them, True/"warn" logs errors,
+                "error" raises a [`PydanticSerializationError`][pydantic_core.PydanticSerializationError].
+            fallback: A function to call when an unknown value is encountered. If not provided,
+                a [`PydanticSerializationError`][pydantic_core.PydanticSerializationError] error is raised.
+            serialize_as_any: Whether to serialize fields with duck-typing serialization behavior.
+            polymorphic_serialization: Whether to use model and dataclass polymorphic serialization for this call.
+
+        Returns:
+            A JSON string representation of the model.
+
+exec
+/bin/zsh -lc "sed -n '540,575p' pydantic/main.py
+sed -n '1500,1590p' pydantic/main.py
+rg -n \"model_dump_json\\(|model_dump\\(\" tests/test_aliases.py | head -50
+python3 - <<'PY'
+from pydantic import BaseModel, ConfigDict, Field
+class M(BaseModel):
+    model_config=ConfigDict(extra='allow')
+    x:int=Field(alias='X')
+m=M.model_validate({'X':1,'x':2})
+for by_alias in (None,False,True):
+    print(by_alias,m.model_dump(by_alias=by_alias),m.model_dump_json(by_alias=by_alias))
+print(M.model_fields['x'])
+PY" in /tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2
+ succeeded in 13ms:
+            A JSON string representation of the model.
+        """
+        return self.__pydantic_serializer__.to_json(
+            self,
+            indent=indent,
+            ensure_ascii=ensure_ascii,
+            include=include,
+            exclude=exclude,
+            context=context,
+            by_alias=by_alias,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none,
+            exclude_computed_fields=exclude_computed_fields,
+            round_trip=round_trip,
+            warnings=warnings,
+            fallback=fallback,
+            serialize_as_any=serialize_as_any,
+            polymorphic_serialization=polymorphic_serialization,
+        ).decode()
+
+    @classmethod
+    def model_json_schema(
+        cls,
+        by_alias: bool = True,
+        ref_template: str = DEFAULT_REF_TEMPLATE,
+        schema_generator: type[GenerateJsonSchema] = GenerateJsonSchema,
+        mode: JsonSchemaMode = 'validation',
+        *,
+        union_format: Literal['any_of', 'primitive_type_array'] = 'any_of',
+    ) -> dict[str, Any]:
+        """Generates a JSON schema for a model class.
+
+        Args:
+            by_alias: Whether to use attribute aliases or not.
+            ref_template: The reference template.
+            'The `construct` method is deprecated; use `model_construct` instead.',
+            category=PydanticDeprecatedSince20,
+            stacklevel=2,
+        )
+        return cls.model_construct(_fields_set=_fields_set, **values)
+
+    @typing_extensions.deprecated(
+        'The `copy` method is deprecated; use `model_copy` instead. '
+        'See the docstring of `BaseModel.copy` for details about how to handle `include` and `exclude`.',
+        category=None,
+    )
+    def copy(
+        self,
+        *,
+        include: AbstractSetIntStr | MappingIntStrAny | None = None,
+        exclude: AbstractSetIntStr | MappingIntStrAny | None = None,
+        update: Dict[str, Any] | None = None,  # noqa UP006
+        deep: bool = False,
+    ) -> Self:  # pragma: no cover
+        """Returns a copy of the model.
+
+        !!! warning "Deprecated"
+            This method is now deprecated; use `model_copy` instead.
+
+        If you need `include` or `exclude`, use:
+
+        ```python {test="skip" lint="skip"}
+        data = self.model_dump(include=include, exclude=exclude, round_trip=True)
+        data = {**data, **(update or {})}
+        copied = self.model_validate(data)
+        ```
+
+        Args:
+            include: Optional set or mapping specifying which fields to include in the copied model.
+            exclude: Optional set or mapping specifying which fields to exclude in the copied model.
+            update: Optional dictionary of field-value pairs to override field values in the copied model.
+            deep: If True, the values of fields that are Pydantic models will be deep-copied.
+
+        Returns:
+            A copy of the model with included, excluded and updated fields as specified.
+        """
+        warnings.warn(
+            'The `copy` method is deprecated; use `model_copy` instead. '
+            'See the docstring of `BaseModel.copy` for details about how to handle `include` and `exclude`.',
+            category=PydanticDeprecatedSince20,
+            stacklevel=2,
+        )
+        from .deprecated import copy_internals
+
+        values = dict(
+            copy_internals._iter(
+                self, to_dict=False, by_alias=False, include=include, exclude=exclude, exclude_unset=False
+            ),
+            **(update or {}),
+        )
+        if self.__pydantic_private__ is None:
+            private = None
+        else:
+            private = {k: v for k, v in self.__pydantic_private__.items() if v is not PydanticUndefined}
+
+        if self.__pydantic_extra__ is None:
+            extra: dict[str, Any] | None = None
+        else:
+            extra = self.__pydantic_extra__.copy()
+            for k in list(self.__pydantic_extra__):
+                if k not in values:  # k was in the exclude
+                    extra.pop(k)
+            for k in list(values):
+                if k in self.__pydantic_extra__:  # k must have come from extra
+                    extra[k] = values.pop(k)
+
+        # new `__pydantic_fields_set__` can have unset optional fields with a set value in `update` kwarg
+        if update:
+            fields_set = self.__pydantic_fields_set__ | update.keys()
+        else:
+            fields_set = set(self.__pydantic_fields_set__)
+
+        # removing excluded fields from `__pydantic_fields_set__`
+        if exclude:
+            fields_set -= set(exclude)
+
+        return copy_internals._copy_and_set_values(self, values, fields_set, extra, private, deep=deep)
+
+    @classmethod
+    @typing_extensions.deprecated('The `schema` method is deprecated; use `model_json_schema` instead.', category=None)
+    def schema(  # noqa: D102
+        cls, by_alias: bool = True, ref_template: str = DEFAULT_REF_TEMPLATE
+    ) -> Dict[str, Any]:  # noqa UP006
+        warnings.warn(
+            'The `schema` method is deprecated; use `model_json_schema` instead.',
+            category=PydanticDeprecatedSince20,
+36:    assert v.model_dump(by_alias=True) == data
+137:    assert Model(lastUpdatedBy='foo').model_dump() == {'last_updated_by': 'foo'}
+138:    assert Model(last_updated_by='foo').model_dump() == {'last_updated_by': 'foo'}
+383:    assert model.model_dump(by_alias=True).get(serialization_key, None) is not None
+393:    assert m.model_dump(by_alias=True) == data
+526:    assert m.model_dump() == {'x': 'bar'}
+527:    assert m.model_dump(by_alias=True) == {'foo': 'bar'}
+537:    assert m.model_dump() == {'x': 'bar'}
+538:    assert m.model_dump(by_alias=True) == {'foo': 'bar'}
+550:    assert m.model_dump() == {'x': 'bar'}
+551:    assert m.model_dump(by_alias=True) == {'foo': 'bar'}
+730:    assert r.model_dump(by_alias=True) == {'WIDTH': 10, 'HEIGHT': 20, 'AREA': 200}
+765:    assert f.model_dump(by_alias=True) == {'a_ser_alias': 'a'}
+766:    assert f.model_dump(by_alias=False) == {'a': 'a'}
+789:    assert r.model_dump(by_alias=True) == {'width_ser_alias': 10, 'height_ser_alias': 20, 'area_ser_alias': 200}
+907:    assert model.model_dump(by_alias=runtime) == expected
+None {'x': 2} {"x":1,"x":2}
+False {'x': 2} {"x":1,"x":2}
+True {'X': 1, 'x': 2} {"X":1,"x":2}
+annotation=int required=True alias='X' alias_priority=2
+
+codex
+The core serializer emits duplicate JSON keys and lets extras overwrite dictionary keys. I’m checking alias mode and include/exclude behavior before patching so the fix preserves all serializer options rather than special-casing the reproducer.
+exec
+/bin/zsh -lc "python3 - <<'PY'
+from pydantic import BaseModel, ConfigDict, Field
+class M(BaseModel):
+ config=ConfigDict(extra='allow')
+ model_config=ConfigDict(extra='allow')
+ x:int=Field(alias='X', serialization_alias='S')
+m=M.model_validate({'X':1,'x':2})
+for ba in (None,False,True):
+ for kw in ({}, {'include':{'x'}},{'exclude':{'x'}}, {'exclude_unset':True}):
+  print('ba',ba,kw,'py=',m.model_dump(by_alias=ba,**kw),'json=',m.model_dump_json(by_alias=ba,**kw))
+print('config',M.model_config)
+PY
+sed -n '1,120p' pydantic/main.py
+rg -n \"serialize_by_alias\" pydantic tests | head -30" in /tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2
+ succeeded in 4ms:
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+  File "/private/tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2/pydantic/_internal/_model_construction.py", line 133, in __new__
+    private_attributes = inspect_namespace(
+        namespace, raw_annotations, config_wrapper.ignored_types, class_vars, base_field_names
+    )
+  File "/private/tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2/pydantic/_internal/_model_construction.py", line 494, in inspect_namespace
+    raise PydanticUserError(
+    ...<4 lines>...
+    )
+pydantic.errors.PydanticUserError: A non-annotated attribute was detected: `config = {'extra': 'allow'}`. All model fields require a type annotation; if `config` is not meant to be a field, you may be able to resolve this error by annotating it as a `ClassVar` or updating `model_config['ignored_types']`.
+
+For further information visit https://errors.pydantic.dev/2.13/u/model-field-missing-annotation
+"""Logic for creating models."""
+
+# Because `dict` is in the local namespace of the `BaseModel` class, we use `Dict` for annotations.
+# TODO v3 fallback to `dict` when the deprecated `dict` method gets removed.
+# ruff: noqa: UP035
+
+from __future__ import annotations as _annotations
+
+import operator
+import sys
+import types
+import warnings
+from collections.abc import Generator, Mapping
+from copy import copy, deepcopy
+from functools import cached_property
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    ClassVar,
+    Dict,
+    Generic,
+    Literal,
+    TypeVar,
+    Union,
+    cast,
+    overload,
+)
+
+import pydantic_core
+import typing_extensions
+from pydantic_core import PydanticUndefined, ValidationError
+from typing_extensions import Self, TypeAlias, Unpack
+
+from . import PydanticDeprecatedSince20, PydanticDeprecatedSince211
+from ._internal import (
+    _config,
+    _decorators,
+    _fields,
+    _forward_ref,
+    _generics,
+    _mock_val_ser,
+    _model_construction,
+    _namespace_utils,
+    _repr,
+    _typing_extra,
+    _utils,
+)
+from ._migration import getattr_migration
+from .aliases import AliasChoices, AliasPath
+from .annotated_handlers import GetCoreSchemaHandler, GetJsonSchemaHandler
+from .config import ConfigDict, ExtraValues
+from .errors import PydanticUndefinedAnnotation, PydanticUserError
+from .json_schema import DEFAULT_REF_TEMPLATE, GenerateJsonSchema, JsonSchemaMode, JsonSchemaValue, model_json_schema
+from .plugin._schema_validator import PluggableSchemaValidator
+
+if TYPE_CHECKING:
+    from inspect import Signature
+    from pathlib import Path
+
+    from pydantic_core import CoreSchema, SchemaSerializer, SchemaValidator
+
+    from ._internal._fields import PydanticExtraInfo
+    from ._internal._namespace_utils import MappingNamespace
+    from ._internal._utils import AbstractSetIntStr, MappingIntStrAny
+    from .deprecated.parse import Protocol as DeprecatedParseProtocol
+    from .fields import ComputedFieldInfo, FieldInfo, ModelPrivateAttr
+
+
+__all__ = 'BaseModel', 'create_model'
+
+# Keep these type aliases available at runtime:
+TupleGenerator: TypeAlias = Generator[tuple[str, Any], None, None]
+# NOTE: In reality, `bool` should be replaced by `Literal[True]` but mypy fails to correctly apply bidirectional
+# type inference (e.g. when using `{'a': {'b': True}}`):
+# NOTE: Keep this type alias in sync with the stub definition in `pydantic-core`:
+IncEx: TypeAlias = Union[set[int], set[str], Mapping[int, Union['IncEx', bool]], Mapping[str, Union['IncEx', bool]]]
+
+_object_setattr = _model_construction.object_setattr
+
+
+def _check_frozen(model_cls: type[BaseModel], name: str, value: Any) -> None:
+    if model_cls.model_config.get('frozen'):
+        error_type = 'frozen_instance'
+    elif getattr(model_cls.__pydantic_fields__.get(name), 'frozen', False):
+        error_type = 'frozen_field'
+    else:
+        return
+
+    raise ValidationError.from_exception_data(
+        model_cls.__name__, [{'type': error_type, 'loc': (name,), 'input': value}]
+    )
+
+
+def _model_field_setattr_handler(model: BaseModel, name: str, val: Any) -> None:
+    model.__dict__[name] = val
+    model.__pydantic_fields_set__.add(name)
+
+
+def _private_setattr_handler(model: BaseModel, name: str, val: Any) -> None:
+    if getattr(model, '__pydantic_private__', None) is None:
+        # While the attribute should be present at this point, this may not be the case if
+        # users do unusual stuff with `model_post_init()` (which is where the  `__pydantic_private__`
+        # is initialized, by wrapping the user-defined `model_post_init()`), e.g. if they mock
+        # the `model_post_init()` call. Ideally we should find a better way to init private attrs.
+        object.__setattr__(model, '__pydantic_private__', {})
+    model.__pydantic_private__[name] = val  # pyright: ignore[reportOptionalSubscript]
+
+
+_SIMPLE_SETATTR_HANDLERS: Mapping[str, Callable[[BaseModel, str, Any], None]] = {
+    'model_field': _model_field_setattr_handler,
+    'validate_assignment': lambda model, name, val: model.__pydantic_validator__.validate_assignment(model, name, val),  # pyright: ignore[reportAssignmentType]
+    'private': _private_setattr_handler,
+    'cached_property': lambda model, name, val: model.__dict__.__setitem__(name, val),
+    'extra_known': lambda model, name, val: _object_setattr(model, name, val),
+}
+
+
+class BaseModel(metaclass=_model_construction.ModelMetaclass):
+    """!!! abstract "Usage Documentation"
+tests/test_aliases.py:897:    Runtime value (by_alias) takes precedence over config value (serialize_by_alias).
+tests/test_aliases.py:902:        model_config = ConfigDict(serialize_by_alias=config)
+pydantic/config.py:1155:    serialize_by_alias: bool
+pydantic/config.py:1159:    Note: In v2.11, `serialize_by_alias` was introduced to address the
+pydantic/config.py:1168:        model_config = ConfigDict(serialize_by_alias=True)
+pydantic/_internal/_config.py:89:    serialize_by_alias: bool
+pydantic/_internal/_config.py:231:                    ('serialize_by_alias', config.get('serialize_by_alias')),
+pydantic/_internal/_config.py:317:    serialize_by_alias=False,
+tests/pydantic_core/serializers/test_typed_dict.py:365:    If the runtime value is unset, the config value (serialize_by_alias) is used.
+tests/pydantic_core/serializers/test_typed_dict.py:377:    s = SchemaSerializer(schema, config=core_schema.CoreConfig(serialize_by_alias=config or False))
+tests/pydantic_core/serializers/test_model.py:1268:    If the runtime value is unset, the config value (serialize_by_alias) is used.
+tests/pydantic_core/serializers/test_model.py:1283:        config=core_schema.CoreConfig(serialize_by_alias=config or False),
+tests/pydantic_core/serializers/test_dataclasses.py:266:    If the runtime value is unset, the config value (serialize_by_alias) is used.
+tests/pydantic_core/serializers/test_dataclasses.py:285:        config=core_schema.CoreConfig(serialize_by_alias=config or False),
+
+exec
+/bin/zsh -lc "sed -n '940,1010p' pydantic/main.py
+python3 - <<'PY'
+from pydantic import BaseModel, ConfigDict, Field
+class M(BaseModel):
+    model_config=ConfigDict(extra='allow')
+    x:int=Field(alias='X', serialization_alias='S')
+m=M.model_validate({'X':1,'x':2})
+for ba in (None,False,True):
+    for kw in ({}, {'include':{'x'}},{'exclude':{'x'}}, {'exclude_unset':True}):
+        print('ba',ba,kw,'py=',m.model_dump(by_alias=ba,**kw),'json=',m.model_dump_json(by_alias=ba,**kw))
+print('config',M.model_config)
+PY
+sed -n '880,920p' tests/test_aliases.py" in /tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2
+ succeeded in 14ms:
+                dict.fromkeys(_generics.iter_contained_typevars(typevars_map.values()))
+            )  # use dict as ordered set
+
+            with _generics.generic_recursion_self_type(origin, args) as maybe_self_type:
+                cached = _generics.get_cached_generic_type_late(cls, typevar_values, origin, args)
+                if cached is not None:
+                    return cached
+
+                if maybe_self_type is not None:
+                    return maybe_self_type
+
+                # Attempt to rebuild the origin in case new types have been defined
+                try:
+                    # depth 2 gets you above this __class_getitem__ call.
+                    # Note that we explicitly provide the parent ns, otherwise
+                    # `model_rebuild` will use the parent ns no matter if it is the ns of a module.
+                    # We don't want this here, as this has unexpected effects when a model
+                    # is being parametrized during a forward annotation evaluation.
+                    parent_ns = _typing_extra.parent_frame_namespace(parent_depth=2) or {}
+                    origin.model_rebuild(_types_namespace=parent_ns)
+                except PydanticUndefinedAnnotation:
+                    # It's okay if it fails, it just means there are still undefined types
+                    # that could be evaluated later.
+                    pass
+
+                submodel = _generics.create_generic_submodel(model_name, origin, args, params)
+
+                _generics.set_cached_generic_type(cls, typevar_values, submodel, origin, args)
+
+        return submodel
+
+    def __copy__(self) -> Self:
+        """Returns a shallow copy of the model."""
+        cls = type(self)
+        m = cls.__new__(cls)
+        _object_setattr(m, '__dict__', copy(self.__dict__))
+        _object_setattr(m, '__pydantic_extra__', copy(self.__pydantic_extra__))
+        _object_setattr(m, '__pydantic_fields_set__', copy(self.__pydantic_fields_set__))
+
+        if not hasattr(self, '__pydantic_private__') or self.__pydantic_private__ is None:
+            _object_setattr(m, '__pydantic_private__', None)
+        else:
+            _object_setattr(
+                m,
+                '__pydantic_private__',
+                {k: v for k, v in self.__pydantic_private__.items() if v is not PydanticUndefined},
+            )
+
+        return m
+
+    def __deepcopy__(self, memo: dict[int, Any] | None = None) -> Self:
+        """Returns a deep copy of the model."""
+        cls = type(self)
+        m = cls.__new__(cls)
+        _object_setattr(m, '__dict__', deepcopy(self.__dict__, memo=memo))
+        _object_setattr(m, '__pydantic_extra__', deepcopy(self.__pydantic_extra__, memo=memo))
+        # This next line doesn't need a deepcopy because __pydantic_fields_set__ is a set[str],
+        # and attempting a deepcopy would be marginally slower.
+        _object_setattr(m, '__pydantic_fields_set__', copy(self.__pydantic_fields_set__))
+
+        if not hasattr(self, '__pydantic_private__') or self.__pydantic_private__ is None:
+            _object_setattr(m, '__pydantic_private__', None)
+        else:
+            _object_setattr(
+                m,
+                '__pydantic_private__',
+                deepcopy({k: v for k, v in self.__pydantic_private__.items() if v is not PydanticUndefined}, memo=memo),
+            )
+
+        return m
+
+ba None {} py= {'x': 2} json= {"x":1,"x":2}
+ba None {'include': {'x'}} py= {'x': 2} json= {"x":1,"x":2}
+ba None {'exclude': {'x'}} py= {} json= {}
+ba None {'exclude_unset': True} py= {'x': 2} json= {"x":1,"x":2}
+ba False {} py= {'x': 2} json= {"x":1,"x":2}
+ba False {'include': {'x'}} py= {'x': 2} json= {"x":1,"x":2}
+ba False {'exclude': {'x'}} py= {} json= {}
+ba False {'exclude_unset': True} py= {'x': 2} json= {"x":1,"x":2}
+ba True {} py= {'S': 1, 'x': 2} json= {"S":1,"x":2}
+ba True {'include': {'x'}} py= {'S': 1, 'x': 2} json= {"S":1,"x":2}
+ba True {'exclude': {'x'}} py= {} json= {}
+ba True {'exclude_unset': True} py= {'S': 1, 'x': 2} json= {"S":1,"x":2}
+config {'extra': 'allow'}
+    [
+        (True, True, {'my_alias': 1}),
+        (True, False, {'my_field': 1}),
+        (True, None, {'my_alias': 1}),
+        (False, True, {'my_alias': 1}),
+        (False, False, {'my_field': 1}),
+        (False, None, {'my_field': 1}),
+        (None, True, {'my_alias': 1}),
+        (None, False, {'my_field': 1}),
+        (None, None, {'my_field': 1}),
+    ],
+)
+def test_serialization_alias_settings(
+    config: Union[bool, None], runtime: Union[bool, None], expected: dict[str, int]
+) -> None:
+    """This test reflects the priority that applies for config vs runtime serialization alias configuration.
+
+    Runtime value (by_alias) takes precedence over config value (serialize_by_alias).
+    If neither are set, the default, False, is used.
+    """
+
+    class Model(BaseModel):
+        model_config = ConfigDict(serialize_by_alias=config)
+
+        my_field: int = Field(serialization_alias='my_alias')
+
+    model = Model(my_field=1)
+    assert model.model_dump(by_alias=runtime) == expected
+
+codex
+The serializer’s include/exclude behavior treats a colliding declared field and extra key as one output key, so the safe fix is to serialize a shallow model copy whose extras omit only keys that collide with the active output names (field names normally, serialization aliases when enabled). This also prevents duplicate JSON object keys.
+apply patch
+patch: completed
+/tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2/pydantic/main.py
+diff --git a/pydantic/main.py b/pydantic/main.py
+index 2ed62e5f3eded5d1e6b0052130e8d5f8627a60c6..1b5e2e97a30a1b9c31544d86518edb95ba157e68
+--- a/pydantic/main.py
++++ b/pydantic/main.py
+@@ -472,8 +472,21 @@
+         Returns:
+             A dictionary representation of the model.
+         """
++        serialization_value = self
++        if self.__pydantic_extra__:
++            serialize_by_alias = by_alias if by_alias is not None else self.model_config.get('serialize_by_alias', False)
++            field_keys = {
++                field.serialization_alias or name if serialize_by_alias else name
++                for name, field in self.__pydantic_fields__.items()
++            }
++            if not self.__pydantic_extra__.keys().isdisjoint(field_keys):
++                serialization_value = BaseModel.__copy__(self)
++                serialization_value.__pydantic_extra__ = {
++                    key: value for key, value in self.__pydantic_extra__.items() if key not in field_keys
++                }
++
+         return self.__pydantic_serializer__.to_python(
+-            self,
++            serialization_value,
+             mode=mode,
+             by_alias=by_alias,
+             include=include,
+@@ -539,8 +552,21 @@
+         Returns:
+             A JSON string representation of the model.
+         """
++        serialization_value = self
++        if self.__pydantic_extra__:
++            serialize_by_alias = by_alias if by_alias is not None else self.model_config.get('serialize_by_alias', False)
++            field_keys = {
++                field.serialization_alias or name if serialize_by_alias else name
++                for name, field in self.__pydantic_fields__.items()
++            }
++            if not self.__pydantic_extra__.keys().isdisjoint(field_keys):
++                serialization_value = BaseModel.__copy__(self)
++                serialization_value.__pydantic_extra__ = {
++                    key: value for key, value in self.__pydantic_extra__.items() if key not in field_keys
++                }
++
+         return self.__pydantic_serializer__.to_json(
+-            self,
++            serialization_value,
+             indent=indent,
+             ensure_ascii=ensure_ascii,
+             include=include,
+
+exec
+/bin/zsh -lc 'git diff -- pydantic/main.py && python3 reproduce_issue.py' in /tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2
+ succeeded in 42ms:
+diff --git a/pydantic/main.py b/pydantic/main.py
+index 2ed62e5f..1b5e2e97 100644
+--- a/pydantic/main.py
++++ b/pydantic/main.py
+@@ -472,8 +472,21 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
+         Returns:
+             A dictionary representation of the model.
+         """
++        serialization_value = self
++        if self.__pydantic_extra__:
++            serialize_by_alias = by_alias if by_alias is not None else self.model_config.get('serialize_by_alias', False)
++            field_keys = {
++                field.serialization_alias or name if serialize_by_alias else name
++                for name, field in self.__pydantic_fields__.items()
++            }
++            if not self.__pydantic_extra__.keys().isdisjoint(field_keys):
++                serialization_value = BaseModel.__copy__(self)
++                serialization_value.__pydantic_extra__ = {
++                    key: value for key, value in self.__pydantic_extra__.items() if key not in field_keys
++                }
++
+         return self.__pydantic_serializer__.to_python(
+-            self,
++            serialization_value,
+             mode=mode,
+             by_alias=by_alias,
+             include=include,
+@@ -539,8 +552,21 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
+         Returns:
+             A JSON string representation of the model.
+         """
++        serialization_value = self
++        if self.__pydantic_extra__:
++            serialize_by_alias = by_alias if by_alias is not None else self.model_config.get('serialize_by_alias', False)
++            field_keys = {
++                field.serialization_alias or name if serialize_by_alias else name
++                for name, field in self.__pydantic_fields__.items()
++            }
++            if not self.__pydantic_extra__.keys().isdisjoint(field_keys):
++                serialization_value = BaseModel.__copy__(self)
++                serialization_value.__pydantic_extra__ = {
++                    key: value for key, value in self.__pydantic_extra__.items() if key not in field_keys
++                }
++
+         return self.__pydantic_serializer__.to_json(
+-            self,
++            serialization_value,
+             indent=indent,
+             ensure_ascii=ensure_ascii,
+             include=include,
+model.x = 1
+model.model_extra = {'x': 2}
+model.model_dump() = {'x': 1}
+model.model_dump_json() = {'x': 1}
+SUCCESS: model.x preserved with validated value 1
+
+codex
+The reproducer now passes: both Python and JSON serialization preserve `x=1`, while the model’s stored extras remain unchanged. I’m running the requested alias regression suite next.
+exec
+/bin/zsh -lc 'pytest -W ignore -o addopts="" tests/test_aliases.py' in /tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2
+ succeeded in 1177ms:
+============================= test session starts ==============================
+platform darwin -- Python 3.14.7, pytest-9.1.1, pluggy-1.6.0
+rootdir: /private/tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2
+configfile: pyproject.toml
+plugins: cov-7.1.0, html-4.1.1, asyncio-1.4.0, metadata-3.1.1, trio-0.8.0, anyio-4.14.2, pytest_httpserver-1.1.5, langsmith-0.9.6, respx-0.23.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 153 items
+
+tests/test_aliases.py .................................................. [ 32%]
+..............s.....s..s.....ssssssssss..s.....s..s.....s..s.....s..s... [ 79%]
+..s..s.....ssssssssss..........                                          [100%]
+
+======================= 121 passed, 32 skipped in 0.19s ========================
+
+apply patch
+patch: completed
+/tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2/pydantic/main.py
+diff --git a/pydantic/main.py b/pydantic/main.py
+index 2ed62e5f3eded5d1e6b0052130e8d5f8627a60c6..cdf5a17c9769c70d124b6c81a75c39c79592495a
+--- a/pydantic/main.py
++++ b/pydantic/main.py
+@@ -472,8 +472,23 @@
+         Returns:
+             A dictionary representation of the model.
+         """
++        serialization_value = self
++        if self.__pydantic_extra__:
++            serialize_by_alias = by_alias if by_alias is not None else self.model_config.get('serialize_by_alias', False)
++            field_keys = {
++                (field.serialization_alias if field.serialization_alias is not None else name)
++                if serialize_by_alias
++                else name
++                for name, field in self.__pydantic_fields__.items()
++            }
++            if not self.__pydantic_extra__.keys().isdisjoint(field_keys):
++                serialization_value = BaseModel.__copy__(self)
++                serialization_value.__pydantic_extra__ = {
++                    key: value for key, value in self.__pydantic_extra__.items() if key not in field_keys
++                }
++
+         return self.__pydantic_serializer__.to_python(
+-            self,
++            serialization_value,
+             mode=mode,
+             by_alias=by_alias,
+             include=include,
+@@ -539,8 +554,23 @@
+         Returns:
+             A JSON string representation of the model.
+         """
++        serialization_value = self
++        if self.__pydantic_extra__:
++            serialize_by_alias = by_alias if by_alias is not None else self.model_config.get('serialize_by_alias', False)
++            field_keys = {
++                (field.serialization_alias if field.serialization_alias is not None else name)
++                if serialize_by_alias
++                else name
++                for name, field in self.__pydantic_fields__.items()
++            }
++            if not self.__pydantic_extra__.keys().isdisjoint(field_keys):
++                serialization_value = BaseModel.__copy__(self)
++                serialization_value.__pydantic_extra__ = {
++                    key: value for key, value in self.__pydantic_extra__.items() if key not in field_keys
++                }
++
+         return self.__pydantic_serializer__.to_json(
+-            self,
++            serialization_value,
+             indent=indent,
+             ensure_ascii=ensure_ascii,
+             include=include,
+
+codex
+The requested suite passed (`121 passed, 32 skipped`). I made one small edge-case refinement for empty-string serialization aliases and am re-running the required checks plus focused style validation on the edited file.
+exec
+/bin/zsh -lc 'python3 reproduce_issue.py && pytest -W ignore -o addopts="" tests/test_aliases.py && ruff format --check pydantic/main.py && ruff check pydantic/main.py && git diff --check && git status --short' in /tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2
+ exited 1 in 1243ms:
+model.x = 1
+model.model_extra = {'x': 2}
+model.model_dump() = {'x': 1}
+model.model_dump_json() = {'x': 1}
+SUCCESS: model.x preserved with validated value 1
+============================= test session starts ==============================
+platform darwin -- Python 3.14.7, pytest-9.1.1, pluggy-1.6.0
+rootdir: /private/tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2
+configfile: pyproject.toml
+plugins: cov-7.1.0, html-4.1.1, asyncio-1.4.0, metadata-3.1.1, trio-0.8.0, anyio-4.14.2, pytest_httpserver-1.1.5, langsmith-0.9.6, respx-0.23.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 153 items
+
+tests/test_aliases.py .................................................. [ 32%]
+..............s.....s..s.....ssssssssss..s.....s..s.....s..s.....s..s... [ 79%]
+..s..s.....ssssssssss..........                                          [100%]
+
+======================= 121 passed, 32 skipped in 0.18s ========================
+Would reformat: pydantic/main.py
+1 file would be reformatted
+
+exec
+/bin/zsh -lc 'ruff format --check --diff pydantic/main.py' in /tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2
+ exited 1 in 0ms:
+--- pydantic/main.py
++++ pydantic/main.py
+@@ -474,7 +474,9 @@
+         """
+         serialization_value = self
+         if self.__pydantic_extra__:
+-            serialize_by_alias = by_alias if by_alias is not None else self.model_config.get('serialize_by_alias', False)
++            serialize_by_alias = (
++                by_alias if by_alias is not None else self.model_config.get('serialize_by_alias', False)
++            )
+             field_keys = {
+                 (field.serialization_alias if field.serialization_alias is not None else name)
+                 if serialize_by_alias
+@@ -556,7 +558,9 @@
+         """
+         serialization_value = self
+         if self.__pydantic_extra__:
+-            serialize_by_alias = by_alias if by_alias is not None else self.model_config.get('serialize_by_alias', False)
++            serialize_by_alias = (
++                by_alias if by_alias is not None else self.model_config.get('serialize_by_alias', False)
++            )
+             field_keys = {
+                 (field.serialization_alias if field.serialization_alias is not None else name)
+                 if serialize_by_alias
+
+1 file would be reformatted
+
+apply patch
+patch: completed
+/tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2/pydantic/main.py
+diff --git a/pydantic/main.py b/pydantic/main.py
+index 2ed62e5f3eded5d1e6b0052130e8d5f8627a60c6..2cda3a0d8eccf3d937ec2bd8f954b74a4c4c9edf
+--- a/pydantic/main.py
++++ b/pydantic/main.py
+@@ -472,8 +472,25 @@
+         Returns:
+             A dictionary representation of the model.
+         """
++        serialization_value = self
++        if self.__pydantic_extra__:
++            serialize_by_alias = (
++                by_alias if by_alias is not None else self.model_config.get('serialize_by_alias', False)
++            )
++            field_keys = {
++                (field.serialization_alias if field.serialization_alias is not None else name)
++                if serialize_by_alias
++                else name
++                for name, field in self.__pydantic_fields__.items()
++            }
++            if not self.__pydantic_extra__.keys().isdisjoint(field_keys):
++                serialization_value = BaseModel.__copy__(self)
++                serialization_value.__pydantic_extra__ = {
++                    key: value for key, value in self.__pydantic_extra__.items() if key not in field_keys
++                }
++
+         return self.__pydantic_serializer__.to_python(
+-            self,
++            serialization_value,
+             mode=mode,
+             by_alias=by_alias,
+             include=include,
+@@ -539,8 +556,25 @@
+         Returns:
+             A JSON string representation of the model.
+         """
++        serialization_value = self
++        if self.__pydantic_extra__:
++            serialize_by_alias = (
++                by_alias if by_alias is not None else self.model_config.get('serialize_by_alias', False)
++            )
++            field_keys = {
++                (field.serialization_alias if field.serialization_alias is not None else name)
++                if serialize_by_alias
++                else name
++                for name, field in self.__pydantic_fields__.items()
++            }
++            if not self.__pydantic_extra__.keys().isdisjoint(field_keys):
++                serialization_value = BaseModel.__copy__(self)
++                serialization_value.__pydantic_extra__ = {
++                    key: value for key, value in self.__pydantic_extra__.items() if key not in field_keys
++                }
++
+         return self.__pydantic_serializer__.to_json(
+-            self,
++            serialization_value,
+             indent=indent,
+             ensure_ascii=ensure_ascii,
+             include=include,
+
+exec
+/bin/zsh -lc 'ruff format --check pydantic/main.py && ruff check pydantic/main.py && git diff --check && git diff --stat && git status --short' in /tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2
+ succeeded in 2ms:
+1 file already formatted
+All checks passed!
+ pydantic/main.py    | 38 ++++++++++++++++++++++++++++++++++++--
+ tests/pydantic_core |  1 -
+ 2 files changed, 36 insertions(+), 3 deletions(-)
+ M pydantic/main.py
+ D tests/pydantic_core
+?? reproduce_issue.py
+
+codex
+Fixed Issue #12884 in [pydantic/main.py](/tmp/digfox_eval/task1_pydantic_12884_repo_baseline_trial2/pydantic/main.py:475).
+
+The serializers now remove colliding extras from a shallow serialization copy, ensuring declared fields take precedence without mutating the model.
+
+Validation:
+
+- `python3 reproduce_issue.py` — passed
+- `pytest -W ignore -o addopts="" tests/test_aliases.py` — 121 passed, 32 skipped
+- Ruff formatting and lint checks — passed
+- `git diff --check` — passed
+
+The pre-existing `tests/pydantic_core` deletion and untracked reproducer were preserved.
+tokens used
+33,880
