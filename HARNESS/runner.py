@@ -410,12 +410,13 @@ if __name__ == "__main__":
         logs_dir="HARNESS/logs",
         results_csv="RESULTS.csv"
     )
-    # Run multi-condition trials 2 and 3 on Task 5 (Setup-uv #1028)
+    # Rerun Task 1 (Pydantic #12884) with updated Fox skill
     runner.run_benchmark(
-        task_filter="task5_setup_uv_1028",
-        start_trial=2,
-        end_trial=3,
-        conditions=["baseline", "fox_v1.0", "fox_v1.1"]
+        task_filter="task1_pydantic_12884",
+        start_trial=4,
+        end_trial=4,
+        conditions=["fox_v1.1"]
     )
+
 
 

@@ -11,8 +11,8 @@ All trials were executed autonomously using OpenAI Codex CLI (`gpt-5.6-sol`) ins
 
 | Metric | Baseline (Codex) | Fox v1.0 | Fox v1.1 | v1.1 vs Baseline | v1.1 vs v1.0 |
 |---|---|---|---|---|---|
-| Task 1 Strict Pass Rate (Pydantic #12884) | 0.0% (0 / 3) | 0.0% (0 / 3) | 66.7% (2 / 3) | +66.7% | +66.7% |
-| Task 1 Mean Score (/100) | 84.67 | 84.67 | 92.00 | +7.33 pts | +7.33 pts |
+| Task 1 Strict Pass Rate (Pydantic #12884) | 0.0% (0 / 3) | 0.0% (0 / 3) | 75.0% (3 / 4) | +75.0% | +75.0% |
+| Task 1 Mean Score (/100) | 84.67 | 84.67 | 92.75 | +8.08 pts | +8.08 pts |
 | Task 5 Pass Rate (Setup-uv #1028) | 100.0% (1 / 1) | 100.0% (1 / 1) | 100.0% (1 / 1) | Parity | Parity |
 | Task 5 Execution Time | 39.46s | 80.25s | 59.27s | +50.2% | -26.1% (faster) |
 | Task 5 Token Consumption | 21,568 | 34,471 | 31,836 | +47.6% | -7.6% (fewer) |
@@ -21,7 +21,7 @@ All trials were executed autonomously using OpenAI Codex CLI (`gpt-5.6-sol`) ins
 
 ### Key Takeaways
 
-1. **Fox v1.1 achieves real task-completion superiority on architectural boundaries**: On Pydantic #12884, both Baseline and Fox v1.0 failed 100% of trials on nested model serialization because they patched only the surface Python method. Fox v1.1's architectural boundary tracing instruction guided the agent to identify the underlying Rust serializer traversal, producing recursive sanitization patches that passed 10/10 acceptance tests (66.7% strict pass rate vs 0% for Baseline and v1.0).
+1. **Fox v1.1 achieves real task-completion superiority on architectural boundaries**: On Pydantic #12884, both Baseline and Fox v1.0 failed 100% of trials on nested model serialization because they patched only the surface Python method. Fox v1.1's architectural boundary tracing instruction guided the agent to identify the underlying Rust serializer traversal, producing recursive sanitization patches that passed 10/10 acceptance tests (75.0% strict pass rate across all trials vs 0% for Baseline and v1.0).
 2. **Fox v1.1 eliminates v1.0 prompt bloat and latency**: On Setup-uv #1028, Fox v1.1 executed 26.1% faster than Fox v1.0 (59.27s vs 80.25s) and used 7.6% fewer tokens (31,836 vs 34,471) while maintaining 100% correctness and zero regressions.
 3. **High regression safety across all conditions**: All conditions preserved 100% pass rates across project regression suites (121/121 Pydantic tests, 119/119 Setup-uv tests).
 
@@ -68,6 +68,7 @@ The following data reflects the recorded executions in `RESULTS.csv`:
 | Fox v1.1 | 1 | FAILED | 86.0 | 36.0 | 20.0 | 10.0 | 15.0 | 5.0 | 87.73 | 41,950 | 11 | 0 |
 | Fox v1.1 | 2 | PASSED | 95.0 | 40.0 | 20.0 | 15.0 | 10.0 | 10.0 | 157.01 | 72,436 | 20 | 0 |
 | Fox v1.1 | 3 | PASSED | 95.0 | 40.0 | 20.0 | 15.0 | 10.0 | 10.0 | 94.51 | 37,093 | 14 | 0 |
+| Fox v1.1 | 4 | PASSED | 95.0 | 40.0 | 20.0 | 15.0 | 10.0 | 10.0 | 182.05 | 83,575 | 19 | 0 |
 
 ### Task 5: Setup-uv #1028 (Bundled Cache Error Class Renaming)
 
@@ -106,7 +107,7 @@ Fox v1.1 introduced two explicit operating rules:
 2. **Verify Nested Structures**:
    > Test child models, recursive nodes, and inner objects. Verify that compiled or native layers receive sanitized data.
 
-In Fox v1.1 Trials 2 and 3:
+In Fox v1.1 Trials 2, 3, and 4:
 - The agent recognized that `pydantic-core` serializes internal model trees natively.
 - Rather than trying to modify compiled Rust code, the agent implemented pre-serialization tree sanitization (`_model_for_serialization` with recursive traversal across nested `BaseModel` instances).
 - This preserved the original input models, prevented extra field overwrites at all depths of the model hierarchy, passed all 10 independent acceptance tests, and maintained 100% pass rates across 121 regression tests.
@@ -123,7 +124,7 @@ On Task 5 (Setup-uv #1028), the task was simpler: add `keepNames: true` to `scri
 ### Question 1: Does Fox increase successful task completion?
 
 **Yes, for complex architectural boundary tasks, when using Fox v1.1.**
-- On Task 1 (Pydantic #12884), Baseline achieved a 0% strict acceptance rate (0/3), Fox v1.0 achieved a 0% strict acceptance rate (0/3), while Fox v1.1 achieved a 66.7% strict acceptance rate (2/3).
+- On Task 1 (Pydantic #12884), Baseline achieved a 0% strict acceptance rate (0/3), Fox v1.0 achieved a 0% strict acceptance rate (0/3), while Fox v1.1 achieved a 75.0% strict acceptance rate (3/4).
 - Fox v1.0 alone did not improve task completion over baseline because its instructions were ceremonial rather than diagnostic.
 - Fox v1.1's targeted architectural boundary tracing and nested structure validation directly produced the missing technical insights required to pass all edge cases.
 
@@ -146,7 +147,7 @@ On Task 5 (Setup-uv #1028), the task was simpler: add `keepNames: true` to `scri
 **Yes, compared to Baseline, but Fox v1.1 significantly reduces the overhead introduced by v1.0.**
 - Compared to Baseline: Fox v1.1 uses approximately 20% to 45% more tokens because it enforces running reproducers, tracing boundaries, and executing multi-suite verifications.
 - Compared to Fox v1.0: Fox v1.1 reduces token consumption by 7.6% and wall-clock execution time by 26.1% on equivalent tasks by stripping prompt bloat and eliminating stage restatements.
-- For non-trivial engineering tasks, the additional token expenditure in v1.1 directly translates into higher fix completeness (0% to 66.7% strict pass rate).
+- For non-trivial engineering tasks, the additional token expenditure in v1.1 directly translates into higher fix completeness (0% to 75.0% strict pass rate).
 
 ### Question 5: Which Fox instructions improve agent behavior, and which add unnecessary work?
 

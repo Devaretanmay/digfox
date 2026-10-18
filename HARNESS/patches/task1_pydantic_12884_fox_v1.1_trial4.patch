@@ -1,0 +1,171 @@
+diff --git a/pydantic/main.py b/pydantic/main.py
+index 2ed62e5f..6d7dbf7c 100644
+--- a/pydantic/main.py
++++ b/pydantic/main.py
+@@ -116,6 +116,140 @@ _SIMPLE_SETATTR_HANDLERS: Mapping[str, Callable[[BaseModel, str, Any], None]] =
+ }
+ 
+ 
++_SerializationOptions: TypeAlias = tuple[IncEx | None, IncEx | None, bool, bool, bool]
++
++
++def _serialized_field_keys(model: BaseModel, by_alias: bool | None, options: _SerializationOptions) -> set[str]:
++    """Return the keys used for declared fields by the core serializer."""
++    include, exclude, exclude_unset, exclude_defaults, exclude_none = options
++    use_alias = model.model_config.get('serialize_by_alias', False) if by_alias is None else by_alias
++    keys: set[str] = set()
++    for name, field in model.__pydantic_fields__.items():
++        if field.exclude is True:
++            continue
++        if include is not None and name not in include:
++            continue
++        if exclude is not None and name in exclude:
++            exclude_value = exclude[name] if isinstance(exclude, Mapping) else True
++            if exclude_value is True or exclude_value is ...:
++                continue
++        if exclude_unset and name not in model.__pydantic_fields_set__:
++            continue
++
++        value = model.__dict__.get(name, PydanticUndefined)
++        if exclude_none and value is None:
++            continue
++        if exclude_defaults:
++            default = field.get_default(call_default_factory=False)
++            if default is not PydanticUndefined:
++                try:
++                    if value == default:
++                        continue
++                except (TypeError, ValueError):
++                    pass
++        if field.exclude_if is not None and field.exclude_if(value):
++            continue
++        keys.add(field.serialization_alias or name if use_alias else name)
++    return keys
++
++
++def _has_extra_serialization_collision(
++    value: Any, by_alias: bool | None, options: _SerializationOptions, seen: set[int]
++) -> bool:
++    """Check a model graph for extras that collide with serialized field keys."""
++    value_id = id(value)
++    if value_id in seen:
++        return False
++
++    if isinstance(value, BaseModel):
++        seen.add(value_id)
++        extra = value.__pydantic_extra__
++        if extra and _serialized_field_keys(value, by_alias, options).intersection(extra):
++            return True
++        nested_options: _SerializationOptions = (None, None, *options[2:])
++        return any(
++            _has_extra_serialization_collision(item, by_alias, nested_options, seen) for item in value.__dict__.values()
++        ) or (
++            extra is not None
++            and any(_has_extra_serialization_collision(item, by_alias, nested_options, seen) for item in extra.values())
++        )
++
++    if isinstance(value, Mapping):
++        seen.add(value_id)
++        return any(_has_extra_serialization_collision(item, by_alias, options, seen) for item in value.values())
++    if isinstance(value, (list, tuple, set, frozenset)):
++        seen.add(value_id)
++        return any(_has_extra_serialization_collision(item, by_alias, options, seen) for item in value)
++    return False
++
++
++def _copy_without_extra_serialization_collisions(
++    value: Any, by_alias: bool | None, options: _SerializationOptions, memo: dict[int, Any]
++) -> Any:
++    """Copy a model graph, omitting extras that would overwrite declared fields."""
++    value_id = id(value)
++    if value_id in memo:
++        return memo[value_id]
++
++    if isinstance(value, BaseModel):
++        copied = value.__copy__()
++        memo[value_id] = copied
++        nested_options: _SerializationOptions = (None, None, *options[2:])
++        copied.__dict__ = {
++            key: _copy_without_extra_serialization_collisions(item, by_alias, nested_options, memo)
++            for key, item in value.__dict__.items()
++        }
++        if value.__pydantic_extra__ is not None:
++            field_keys = _serialized_field_keys(value, by_alias, options)
++            copied.__pydantic_extra__ = {
++                key: _copy_without_extra_serialization_collisions(item, by_alias, nested_options, memo)
++                for key, item in value.__pydantic_extra__.items()
++                if key not in field_keys
++            }
++        return copied
++
++    if isinstance(value, dict):
++        copied_dict: dict[Any, Any] = {}
++        memo[value_id] = copied_dict
++        copied_dict.update(
++            (key, _copy_without_extra_serialization_collisions(item, by_alias, options, memo))
++            for key, item in value.items()
++        )
++        return copied_dict
++    if isinstance(value, list):
++        copied_list: list[Any] = []
++        memo[value_id] = copied_list
++        copied_list.extend(
++            _copy_without_extra_serialization_collisions(item, by_alias, options, memo) for item in value
++        )
++        return copied_list
++    if isinstance(value, tuple):
++        copied_tuple = tuple(
++            _copy_without_extra_serialization_collisions(item, by_alias, options, memo) for item in value
++        )
++        memo[value_id] = copied_tuple
++        return copied_tuple
++    if isinstance(value, set):
++        copied_set = {_copy_without_extra_serialization_collisions(item, by_alias, options, memo) for item in value}
++        memo[value_id] = copied_set
++        return copied_set
++    if isinstance(value, frozenset):
++        copied_frozenset = frozenset(
++            _copy_without_extra_serialization_collisions(item, by_alias, options, memo) for item in value
++        )
++        memo[value_id] = copied_frozenset
++        return copied_frozenset
++    return value
++
++
++def _model_without_extra_serialization_collisions(
++    model: BaseModel, by_alias: bool | None, options: _SerializationOptions
++) -> BaseModel:
++    if not _has_extra_serialization_collision(model, by_alias, options, set()):
++        return model
++    return _copy_without_extra_serialization_collisions(model, by_alias, options, {})
++
++
+ class BaseModel(metaclass=_model_construction.ModelMetaclass):
+     """!!! abstract "Usage Documentation"
+         [Models](../concepts/models.md)
+@@ -472,8 +606,11 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
+         Returns:
+             A dictionary representation of the model.
+         """
++        serialization_model = _model_without_extra_serialization_collisions(
++            self, by_alias, (include, exclude, exclude_unset, exclude_defaults, exclude_none)
++        )
+         return self.__pydantic_serializer__.to_python(
+-            self,
++            serialization_model,
+             mode=mode,
+             by_alias=by_alias,
+             include=include,
+@@ -539,8 +676,11 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
+         Returns:
+             A JSON string representation of the model.
+         """
++        serialization_model = _model_without_extra_serialization_collisions(
++            self, by_alias, (include, exclude, exclude_unset, exclude_defaults, exclude_none)
++        )
+         return self.__pydantic_serializer__.to_json(
+-            self,
++            serialization_model,
+             indent=indent,
+             ensure_ascii=ensure_ascii,
+             include=include,

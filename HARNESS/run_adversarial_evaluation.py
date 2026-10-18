@@ -23,8 +23,13 @@ def evaluate_patch(name: str, patch_file: str | None) -> Dict[str, any]:
     patch_applied = True
     patch_err = ""
     if patch_file and os.path.exists(patch_file):
+        with open(patch_file, "r", encoding="utf-8") as pf:
+            patch_content = pf.read()
+        if "diff --git a/tests/pydantic_core" in patch_content:
+            patch_content = patch_content.split("diff --git a/tests/pydantic_core")[0]
         res = subprocess.run(
-            ["git", "apply", "--ignore-whitespace", os.path.abspath(patch_file)],
+            ["git", "apply", "--ignore-whitespace", "-"],
+            input=patch_content,
             cwd=workdir,
             capture_output=True,
             text=True
@@ -63,18 +68,13 @@ def evaluate_patch(name: str, patch_file: str | None) -> Dict[str, any]:
         "test_12_high_volume_extras_scalability",
     ]
 
+    import re
     results = {}
     for t in tests:
-        if f"{t} ... ok" in output or f"{t} (test_adversarial.TestPydanticAdversarialSerialization.test_{t[5:]}) ... ok" in output or f"{t} (test_adversarial.TestPydanticAdversarialSerialization) ... ok" in output:
+        if re.search(rf"{t}\s*\([^)]*\)\s*\n[^\n]*\.\.\. ok", output):
             results[t] = "PASS"
-        elif f"{t} ... FAIL" in output or f"{t} ... ERROR" in output or f"{t} (test_adversarial.TestPydanticAdversarialSerialization" in output:
-            results[t] = "FAIL"
         else:
-            # Check by regex
-            if f"{t} ... ok" in output:
-                results[t] = "PASS"
-            else:
-                results[t] = "FAIL"
+            results[t] = "FAIL"
 
     total_passed = sum(1 for v in results.values() if v == "PASS")
 
@@ -104,6 +104,7 @@ def main():
         ("Fox v1.1 Trial 1", "HARNESS/patches/task1_pydantic_12884_fox_v1.1_trial1.patch"),
         ("Fox v1.1 Trial 2", "HARNESS/patches/task1_pydantic_12884_fox_v1.1_trial2.patch"),
         ("Fox v1.1 Trial 3", "HARNESS/patches/task1_pydantic_12884_fox_v1.1_trial3.patch"),
+        ("Fox v1.1 Trial 4", "HARNESS/patches/task1_pydantic_12884_fox_v1.1_trial4.patch"),
     ]
 
     all_res = []
