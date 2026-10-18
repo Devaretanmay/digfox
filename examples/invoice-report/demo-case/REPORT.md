@@ -1,4 +1,4 @@
-# Digfox case report
+# Fox case report
 
 **Question:** Can invoice totals be reproduced without a language model?
 **Target:** examples/invoice-report

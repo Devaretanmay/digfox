@@ -11,4 +11,4 @@ python3 examples/invoice-report/report.py examples/invoice-report/input.csv
 # {"Design": "175.25", "Engineering": "225.00"}
 ```
 
-`examples/invoice-report/demo-case/` records a generated Digfox case, source hashes, a challenged claim, the architecture decision, recorded output test and an explicit limitation. The fixture is small and synthetic. It demonstrates ledger mechanics, **not** real production quality or an independently attested benchmark.
+`examples/invoice-report/demo-case/` records a generated Fox case, source hashes, a challenged claim, the architecture decision, recorded output test and an explicit limitation. The fixture is small and synthetic. It demonstrates ledger mechanics, **not** real production quality or an independently attested benchmark.

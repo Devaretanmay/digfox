@@ -40,16 +40,16 @@ Use checkpoints where the next action would propagate an error or create an exte
 
 ## Workflow scaffolding tools
 
-For recurring tasks requiring explicit stage separation, Digfox provides optional scaffolding utilities:
+For recurring tasks requiring explicit stage separation, Fox provides optional scaffolding utilities:
 
 ```bash
 # Generate a staged workflow directory
-python3 skills/digfox/scripts/scaffold.py my-pipeline \
+python3 skills/fox/scripts/scaffold.py my-pipeline \
   --output ./workflows \
   --stages collect,transform,verify
 
 # Audit workflow structure and stage contracts
-python3 skills/digfox/scripts/audit.py ./workflows/my-pipeline
+python3 skills/fox/scripts/audit.py ./workflows/my-pipeline
 ```
 
 - `scaffold.py` creates standardized stage folders (`01-collect`, `02-transform`, `03-verify`) with stub manifests and instructions.

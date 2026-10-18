@@ -1,4 +1,4 @@
-# Digfox: design decisions
+# Fox: design decisions
 
 ## Decision ladder
 

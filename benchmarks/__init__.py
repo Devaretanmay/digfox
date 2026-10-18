@@ -1,1 +1,1 @@
-"""Digfox benchmarks package."""
+"""Fox benchmarks package."""

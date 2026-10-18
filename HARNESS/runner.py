@@ -1,8 +1,8 @@
 """Benchmark runner executing live autonomous coding agents via Codex CLI.
 
 Executes:
-- Condition A: Baseline Coding Agent (standard prompt, Digfox omitted)
-- Condition B: Digfox Agent (standard prompt + Digfox skill activated)
+- Condition A: Baseline Coding Agent (standard prompt, Fox omitted)
+- Condition B: Fox Agent (standard prompt + Fox skill activated)
 
 Records all real metrics to RESULTS.csv and generates execution logs.
 """
@@ -58,7 +58,7 @@ class BenchmarkRunner:
                 pass
 
         print(f"Loaded {len(manifests)} benchmark task manifests for live execution.")
-        target_conditions = conditions if conditions is not None else ["baseline", "digfox_v1.0", "digfox_v1.1"]
+        target_conditions = conditions if conditions is not None else ["baseline", "fox_v1.0", "fox_v1.1"]
 
         for manifest in manifests:
             task_id = manifest["task_id"]
@@ -85,7 +85,7 @@ class BenchmarkRunner:
             shutil.rmtree(workspace_dir)
 
         # Clone clean working tree from local pydantic_repo template
-        shutil.copytree("/tmp/digfox_eval/pydantic_repo", workspace_dir)
+        shutil.copytree("/tmp/fox_eval/pydantic_repo", workspace_dir)
 
         # Add reproduction script at repository root
         reproduce_py = (
@@ -123,7 +123,7 @@ class BenchmarkRunner:
             shutil.rmtree(workspace_dir)
 
         # Clone clean working tree from local setup_uv_repo template
-        shutil.copytree("/tmp/digfox_eval/setup_uv_repo", workspace_dir)
+        shutil.copytree("/tmp/fox_eval/setup_uv_repo", workspace_dir)
 
         reproduce_js = (
             "import fs from 'node:fs';\n"
@@ -157,7 +157,7 @@ class BenchmarkRunner:
 
     def _execute_real_codex_run(self, manifest: Dict[str, Any], condition: str, trial: int) -> Dict[str, Any]:
         task_id = manifest["task_id"]
-        workspace_dir = f"/tmp/digfox_eval/{task_id}_repo_{condition}_trial{trial}"
+        workspace_dir = f"/tmp/fox_eval/{task_id}_repo_{condition}_trial{trial}"
         log_file = os.path.join(self.logs_dir, f"{task_id}_{condition}_trial{trial}.log")
 
         if task_id == "task1_pydantic_12884":
@@ -179,17 +179,17 @@ class BenchmarkRunner:
                     "4. Run `python3 reproduce_issue.py` to confirm the fix works.\n"
                     "5. Run `pytest -W ignore -o addopts=\"\" tests/test_aliases.py` to verify no regressions.\n"
                 )
-            elif condition in ["digfox_v1.0", "digfox"]:
-                skill_file = os.path.abspath("skills/digfox/SKILL.v1.0.md")
+            elif condition in ["fox_v1.0", "fox"]:
+                skill_file = os.path.abspath("skills/fox/SKILL.v1.0.md")
                 if not os.path.exists(skill_file):
-                    skill_file = os.path.abspath("skills/digfox/SKILL.md")
+                    skill_file = os.path.abspath("skills/fox/SKILL.md")
                 with open(skill_file, "r", encoding="utf-8") as sf:
-                    digfox_instructions = sf.read()
+                    fox_instructions = sf.read()
                 prompt = (
-                    "You are an autonomous software engineering agent equipped with the Digfox Agent Skill, "
+                    "You are an autonomous software engineering agent equipped with the Fox Agent Skill, "
                     "working inside the pydantic/pydantic repository.\n"
-                    "Follow the Digfox process strictly:\n\n"
-                    f"{digfox_instructions}\n\n"
+                    "Follow the Fox process strictly:\n\n"
+                    f"{fox_instructions}\n\n"
                     "Task: Fix the data serialization collision defect (Issue #12884) in `pydantic/main.py`.\n\n"
                     "Problem Description:\n"
                     "When a Pydantic model is configured with extra='allow' and a field has an alias, "
@@ -203,15 +203,15 @@ class BenchmarkRunner:
                     "5. Verify your fix by running `python3 reproduce_issue.py` and `pytest -W ignore -o addopts=\"\" tests/test_aliases.py`.\n"
                     "6. Deliver your final report stating what was inspected, changed, and tested.\n"
                 )
-            elif condition == "digfox_v1.1":
-                skill_file = os.path.abspath("skills/digfox/SKILL.md")
+            elif condition == "fox_v1.1":
+                skill_file = os.path.abspath("skills/fox/SKILL.md")
                 with open(skill_file, "r", encoding="utf-8") as sf:
-                    digfox_instructions = sf.read()
+                    fox_instructions = sf.read()
                 prompt = (
-                    "You are an autonomous software engineering agent equipped with Digfox v1.1, "
+                    "You are an autonomous software engineering agent equipped with Fox v1.1, "
                     "working inside the pydantic/pydantic repository.\n"
-                    "Follow the Digfox v1.1 workflow (Ground, Trace, Change, Verify):\n\n"
-                    f"{digfox_instructions}\n\n"
+                    "Follow the Fox v1.1 workflow (Ground, Trace, Change, Verify):\n\n"
+                    f"{fox_instructions}\n\n"
                     "Task: Fix the data serialization collision defect (Issue #12884) in `pydantic/main.py`.\n\n"
                     "Problem Description:\n"
                     "When a Pydantic model is configured with extra='allow' and a field has an alias, "
@@ -242,16 +242,16 @@ class BenchmarkRunner:
                     "4. Run `node reproduce_issue.js` to verify that class name matches instance name.\n"
                     "5. Run `npm run test:unit` to verify that existing unit tests pass.\n"
                 )
-            elif condition in ["digfox_v1.0", "digfox"]:
-                skill_file = os.path.abspath("skills/digfox/SKILL.v1.0.md")
+            elif condition in ["fox_v1.0", "fox"]:
+                skill_file = os.path.abspath("skills/fox/SKILL.v1.0.md")
                 if not os.path.exists(skill_file):
-                    skill_file = os.path.abspath("skills/digfox/SKILL.md")
+                    skill_file = os.path.abspath("skills/fox/SKILL.md")
                 with open(skill_file, "r", encoding="utf-8") as sf:
-                    digfox_instructions = sf.read()
+                    fox_instructions = sf.read()
                 prompt = (
-                    "You are an autonomous software engineering agent equipped with Digfox Agent Skill, working inside the astral-sh/setup-uv repository.\n"
-                    "Follow the Digfox process strictly:\n\n"
-                    f"{digfox_instructions}\n\n"
+                    "You are an autonomous software engineering agent equipped with Fox Agent Skill, working inside the astral-sh/setup-uv repository.\n"
+                    "Follow the Fox process strictly:\n\n"
+                    f"{fox_instructions}\n\n"
                     "Task: Fix issue #1028 where benign concurrent cache saves trigger warning annotations in GitHub Actions.\n\n"
                     "Problem Description:\n"
                     "In `dist/save-cache/index.cjs`, bundled `ReserveCacheError` class is renamed by the bundler into `class _ReserveCacheError`, "
@@ -263,14 +263,14 @@ class BenchmarkRunner:
                     "4. Verify your fix with `node reproduce_issue.js` and `npm run test:unit`.\n"
                     "5. Deliver your final report stating what was inspected, changed, and tested.\n"
                 )
-            elif condition == "digfox_v1.1":
-                skill_file = os.path.abspath("skills/digfox/SKILL.md")
+            elif condition == "fox_v1.1":
+                skill_file = os.path.abspath("skills/fox/SKILL.md")
                 with open(skill_file, "r", encoding="utf-8") as sf:
-                    digfox_instructions = sf.read()
+                    fox_instructions = sf.read()
                 prompt = (
-                    "You are an autonomous software engineering agent equipped with Digfox v1.1, working inside the astral-sh/setup-uv repository.\n"
-                    "Follow the Digfox v1.1 workflow (Ground, Trace, Change, Verify):\n\n"
-                    f"{digfox_instructions}\n\n"
+                    "You are an autonomous software engineering agent equipped with Fox v1.1, working inside the astral-sh/setup-uv repository.\n"
+                    "Follow the Fox v1.1 workflow (Ground, Trace, Change, Verify):\n\n"
+                    f"{fox_instructions}\n\n"
                     "Task: Fix issue #1028 where benign concurrent cache saves trigger warning annotations in GitHub Actions.\n\n"
                     "Problem Description:\n"
                     "In `dist/save-cache/index.cjs`, bundled `ReserveCacheError` class is renamed by the bundler into `class _ReserveCacheError`, "
@@ -415,7 +415,7 @@ if __name__ == "__main__":
         task_filter="task5_setup_uv_1028",
         start_trial=2,
         end_trial=3,
-        conditions=["baseline", "digfox_v1.0", "digfox_v1.1"]
+        conditions=["baseline", "fox_v1.0", "fox_v1.1"]
     )
 
 

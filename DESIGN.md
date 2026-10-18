@@ -1,10 +1,10 @@
 # Architecture and design decisions
 
-Why Digfox is built as a lightweight skill, not a massive prompt or a cloud service.
+Why Fox is built as a lightweight skill, not a massive prompt or a cloud service.
 
 ---
 
-## Why Digfox exists
+## Why Fox exists
 
 Most AI coding agents fail in predictable ways:
 1. They jump straight into editing files before reading how your system actually works.
@@ -12,7 +12,7 @@ Most AI coding agents fail in predictable ways:
 3. They reach for complex architectures (like five cooperating background agents) when a 20-line Python script solves the problem cleanly.
 4. They tell you everything works without running a single test.
 
-Digfox adds guardrails to stop that. It gives agents a simple sequence: understand the problem, check evidence, pick the simplest fix, write code, run tests, and report what actually happened.
+Fox adds guardrails to stop that. It gives agents a simple sequence: understand the problem, check evidence, pick the simplest fix, write code, run tests, and report what actually happened.
 
 ---
 
@@ -20,10 +20,10 @@ Digfox adds guardrails to stop that. It gives agents a simple sequence: understa
 
 | Option | What we chose | Why |
 |---|---|---|
-| Merge REA and Digfox into one massive file | **Rejected** | REA is built for deep reverse engineering (binaries, Electron apps, IPC, network traffic). Shoving all those instructions into every routine coding prompt adds token waste and confuses the model. |
+| Merge REA and Fox into one massive file | **Rejected** | REA is built for deep reverse engineering (binaries, Electron apps, IPC, network traffic). Shoving all those instructions into every routine coding prompt adds token waste and confuses the model. |
 | Replace REA with a generic research checklist | **Rejected** | A checklist is useless when you actually need deep binary decompilation or network traffic capture. Keeping REA as a decoupled optional tool gives you forensic depth without daily prompt bloat. |
 | Spin up a swarm of background agents by default | **Rejected** | Multi-agent swarms look great in demos, but in production they burn tokens, introduce race conditions, and create confusing failure modes. Default to one capable agent and deterministic scripts. |
-| Lightweight front door with an optional evidence ledger | **Accepted** | Digfox works out of the box with standard Python. If you want deep forensics, connect REA. If you want an audit trail, use the CLI ledger. |
+| Lightweight front door with an optional evidence ledger | **Accepted** | Fox works out of the box with standard Python. If you want deep forensics, connect REA. If you want an audit trail, use the CLI ledger. |
 
 ---
 
@@ -36,7 +36,7 @@ It is **not** a blockchain, a cloud database, or a tamper-proof cryptographic au
 * An `evidence/` folder storing copies of files you referenced.
 * SHA-256 hashes of every copied file.
 
-When you run `python3 skills/digfox/scripts/proof.py check ./cases/your-case`, it hashes the files on disk and compares them against `case.json`. If you accidentally edited an evidence file, swapped a test log, or broke a path, the check fails.
+When you run `python3 skills/fox/scripts/proof.py check ./cases/your-case`, it hashes the files on disk and compares them against `case.json`. If you accidentally edited an evidence file, swapped a test log, or broke a path, the check fails.
 
 ### What it guarantees
 * It catches accidental file modifications, file drift, and stale test outputs.
@@ -54,7 +54,7 @@ When you run `python3 skills/digfox/scripts/proof.py check ./cases/your-case`, i
 
 ## The six-stage workflow
 
-Digfox guides agents through six gates:
+Fox guides agents through six gates:
 
 ```text
 Scope -> Investigate -> Decide -> Build -> Verify -> Deliver

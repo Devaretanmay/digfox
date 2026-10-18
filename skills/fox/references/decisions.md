@@ -28,6 +28,6 @@ Do not optimize for novelty. Design choices must be reasoned, not maximal. A low
 
 **Invoice extraction**: select a parser + deterministic checks; LLM only for ambiguous exceptions. Reject autonomous orchestration because schema and calculation rules are stable. Revisit if document variability exceeds rules.
 
-**Incident investigation**: prefer REA (when authorized) for binary/app runtime trace over speculation, then use Digfox to capture the evidence-backed cause and a regression test. Reject reconstructing behavior directly from a screenshot.
+**Incident investigation**: prefer REA (when authorized) for binary/app runtime trace over speculation, then use Fox to capture the evidence-backed cause and a regression test. Reject reconstructing behavior directly from a screenshot.
 
 **Weekly content workflow**: favor a small folder workflow with script, storyboard, and review contracts. Reject a distributed multi-agent service because there's one operator and no concurrency requirement.

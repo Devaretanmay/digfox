@@ -1,4 +1,4 @@
-"""Tests for Digfox skill metadata, reference links, and tool availability."""
+"""Tests for Fox skill metadata, reference links, and tool availability."""
 from __future__ import annotations
 
 import os
@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL_DIR = ROOT / "skills/digfox"
+SKILL_DIR = ROOT / "skills/fox"
 SKILL_MD = SKILL_DIR / "SKILL.md"
 SCRIPTS_DIR = SKILL_DIR / "scripts"
 
@@ -29,7 +29,7 @@ class SkillMetadataAndIntegrityTests(unittest.TestCase):
         body = parts[2].strip()
 
         # Check required fields
-        self.assertIn("name: digfox", frontmatter)
+        self.assertIn("name: fox", frontmatter)
         self.assertIn("description:", frontmatter)
         self.assertIn('version: "1.1.0"', frontmatter)
         self.assertIn("license: MIT", frontmatter)

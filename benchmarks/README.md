@@ -1,4 +1,4 @@
-# Digfox Real-World Benchmark Suite
+# Fox Real-World Benchmark Suite
 
 This directory contains standalone benchmark fixtures for evaluating AI coding agents on real-world open-source defects.
 
@@ -15,7 +15,7 @@ benchmarks/
     TASK.md               # Task specification and acceptance criteria
     reproduce_issue.py    # Standalone reproduction script
     test_solution.py      # Automated regression test suite
-    case/                 # Verified Digfox evidence ledger for this task
+    case/                 # Verified Fox evidence ledger for this task
 ```
 
 ---
@@ -43,8 +43,8 @@ To run the Task 1 test suite:
 python3 -m unittest benchmarks/task1_pydantic_12884/test_solution.py
 ```
 
-To inspect the Task 1 Digfox evidence ledger:
+To inspect the Task 1 Fox evidence ledger:
 ```bash
-python3 skills/digfox/scripts/proof.py check benchmarks/task1_pydantic_12884/case
-python3 skills/digfox/scripts/proof.py report benchmarks/task1_pydantic_12884/case
+python3 skills/fox/scripts/proof.py check benchmarks/task1_pydantic_12884/case
+python3 skills/fox/scripts/proof.py report benchmarks/task1_pydantic_12884/case
 ```

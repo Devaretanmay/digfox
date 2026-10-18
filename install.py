@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install Digfox, optionally alongside the original REA Investigator skill."""
+"""Install Fox, optionally alongside the original REA Investigator skill."""
 from __future__ import annotations
 import argparse
 import os
@@ -26,8 +26,8 @@ def install(agent: str, project: Path, rea_path: Path | None = None, force: bool
     project = project.expanduser().resolve()
     if not project.is_dir():
         raise ValueError(f"Project directory must exist: {project}")
-    src = ROOT / "skills" / "digfox"
-    sources = [(src, "digfox")]
+    src = ROOT / "skills" / "fox"
+    sources = [(src, "fox")]
     if rea_path is not None:
         sources.append((find_rea(rea_path), "rea-investigate"))
     target_dir = project / AGENTS[agent]
@@ -94,7 +94,7 @@ def main(argv=None) -> int:
         dests = install(args.agent, args.project, args.rea_path, args.force, args.dry_run)
         if not args.dry_run:
             for dest in dests: print("INSTALLED: " + str(dest))
-            print("Invoke: /digfox (and /rea-investigate if included)")
+            print("Invoke: /fox (and /rea-investigate if included)")
         return 0
     except (ValueError, FileExistsError, OSError) as ex:
         print("ERROR: " + str(ex), file=__import__("sys").stderr)

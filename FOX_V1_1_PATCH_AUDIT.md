@@ -1,10 +1,10 @@
-# Technical Audit: Digfox v1.1 Pydantic Patches (Trials 2 & 3)
+# Technical Audit: Fox v1.1 Pydantic Patches (Trials 2 & 3)
 
 ## Executive Summary
 
-In preliminary benchmarking on Pydantic Issue #12884, Digfox v1.1 achieved a reported 66.7% strict acceptance pass rate (2 out of 3 trials passed), whereas Baseline and Digfox v1.0 achieved 0% pass rates. Both passing trials (Trial 2 and Trial 3) passed 10 out of 10 checks in the initial benchmark acceptance suite.
+In preliminary benchmarking on Pydantic Issue #12884, Fox v1.1 achieved a reported 66.7% strict acceptance pass rate (2 out of 3 trials passed), whereas Baseline and Fox v1.0 achieved 0% pass rates. Both passing trials (Trial 2 and Trial 3) passed 10 out of 10 checks in the initial benchmark acceptance suite.
 
-This audit examines the actual code modifications produced by Digfox v1.1 in Trials 2 and 3, comparing their architectural design against Pydantic's serialization engine and upstream issue discussions.
+This audit examines the actual code modifications produced by Fox v1.1 in Trials 2 and 3, comparing their architectural design against Pydantic's serialization engine and upstream issue discussions.
 
 ### Audit Verdict: Incomplete Python-Level Workaround
 
@@ -80,6 +80,6 @@ Maintainers noted:
 
 ## 4. Conclusion
 
-Digfox v1.1's architectural boundary tracing instructions successfully nudged the agent to recognize that `pydantic-core` bypassed top-level method overrides. However, because the agent lacked access or instructions to edit the compiled Rust core, it compensated by generating an elaborate Python-level pre-cloning shim.
+Fox v1.1's architectural boundary tracing instructions successfully nudged the agent to recognize that `pydantic-core` bypassed top-level method overrides. However, because the agent lacked access or instructions to edit the compiled Rust core, it compensated by generating an elaborate Python-level pre-cloning shim.
 
 While this shim was sufficient to pass the benchmark's 10-point acceptance test, it collapsed under adversarial testing, failing 11 out of 12 real-world edge cases.

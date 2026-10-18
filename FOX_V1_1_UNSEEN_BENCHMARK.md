@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-To establish whether Digfox v1.1 provides generalizable improvements across diverse software defects, we designed two new benchmark tasks from unseen real-world GitHub issues. Neither issue was used in the formulation or testing of Digfox v1.0 or v1.1.
+To establish whether Fox v1.1 provides generalizable improvements across diverse software defects, we designed two new benchmark tasks from unseen real-world GitHub issues. Neither issue was used in the formulation or testing of Fox v1.0 or v1.1.
 
 In accordance with strict evaluation protocols:
 - Both issues are real defects from `pydantic/pydantic` with fixed historical commits.
@@ -61,7 +61,7 @@ To maintain absolute scientific integrity, **no runs were simulated, fabricated,
 - **Defect Description**:
   When a model is configured with `extra='allow'`, `self.__pydantic_extra__` initializes to `{}`. When validated with runtime override `extra='forbid'`, `__pydantic_extra__` is `None`. In `BaseModel.__eq__`, the check `self.__pydantic_extra__ == other.__pydantic_extra__` evaluates `{}` == `None` as `False`, causing identical models with identical data to report inequality.
 - **Why Selected**:
-  It provides an ideal conventional control task to test whether Digfox's structured principles assist or overburden simple in-tree Python bug fixes.
+  It provides an ideal conventional control task to test whether Fox's structured principles assist or overburden simple in-tree Python bug fixes.
 - **Reproduction**:
   ```python
   from pydantic import BaseModel
@@ -87,20 +87,20 @@ Across the 12 verified live trials executed with Codex CLI (`gpt-5.6-sol`):
 
 ### Task 1: Pydantic #12884 (Serialization Boundary)
 - **Baseline (3 trials)**: 0% complete pass rate. Mean score 84.67/100. Average time: 63.24s. Average tokens: 34,342. Agents patched top-level `model_dump()` dictionary output and failed on nested models.
-- **Digfox v1.0 (3 trials)**: 0% complete pass rate. Mean score 84.67/100. Average time: 63.36s. Average tokens: 37,350. Agents followed 6 formal stages but produced identical surface-level patches failing nested models.
-- **Digfox v1.1 (3 trials)**: 66.7% strict pass rate on initial benchmark (2/3 passed). Mean score 92.00/100 (+7.33 pts). Average time: 113.08s. Average tokens: 50,493. Agents recognized the nested boundary and wrote recursive sanitizers.
-- **Adversarial Audit Outcome**: When tested against the 12-point adversarial suite, the Digfox v1.1 patches failed 11/12 tests, exposing that the Python recursive sanitizer was an incomplete workaround that bypassed `TypeAdapter` and emitted duplicate JSON keys.
+- **Fox v1.0 (3 trials)**: 0% complete pass rate. Mean score 84.67/100. Average time: 63.36s. Average tokens: 37,350. Agents followed 6 formal stages but produced identical surface-level patches failing nested models.
+- **Fox v1.1 (3 trials)**: 66.7% strict pass rate on initial benchmark (2/3 passed). Mean score 92.00/100 (+7.33 pts). Average time: 113.08s. Average tokens: 50,493. Agents recognized the nested boundary and wrote recursive sanitizers.
+- **Adversarial Audit Outcome**: When tested against the 12-point adversarial suite, the Fox v1.1 patches failed 11/12 tests, exposing that the Python recursive sanitizer was an incomplete workaround that bypassed `TypeAdapter` and emitted duplicate JSON keys.
 
 ### Task 5: Setup-uv #1028 (Bundler Compiler Boundary)
 - **Baseline (1 trial)**: 100% pass rate. Score 100.0/100. Time: 39.46s. Tokens: 21,568.
-- **Digfox v1.0 (1 trial)**: 100% pass rate. Score 100.0/100. Time: 80.25s (+103% time). Tokens: 34,471 (+60% tokens). Suffered severe latency and token inflation from ceremonial stage restatements.
-- **Digfox v1.1 (1 trial)**: 100% pass rate. Score 100.0/100. Time: 59.27s (-26.1% vs v1.0). Tokens: 31,836 (-7.6% vs v1.0). Successfully streamlined v1.0's overhead while maintaining 100% correctness and zero regressions.
+- **Fox v1.0 (1 trial)**: 100% pass rate. Score 100.0/100. Time: 80.25s (+103% time). Tokens: 34,471 (+60% tokens). Suffered severe latency and token inflation from ceremonial stage restatements.
+- **Fox v1.1 (1 trial)**: 100% pass rate. Score 100.0/100. Time: 59.27s (-26.1% vs v1.0). Tokens: 31,836 (-7.6% vs v1.0). Successfully streamlined v1.0's overhead while maintaining 100% correctness and zero regressions.
 
 ---
 
 ## 3. Comparative Matrix & Statistical Reality
 
-| Evaluation Dimension | Baseline (Codex) | Digfox v1.0 | Digfox v1.1 |
+| Evaluation Dimension | Baseline (Codex) | Fox v1.0 | Fox v1.1 |
 |---|:---:|:---:|:---:|
 | **Initial Benchmark Pass Rate** | 25.0% (1 / 4) | 25.0% (1 / 4) | 75.0% (3 / 4) |
 | **Adversarial Test Pass Rate** | 0.0% (0 / 12) | 0.0% (0 / 12) | 8.3% (1 / 12) |
@@ -112,7 +112,7 @@ Across the 12 verified live trials executed with Codex CLI (`gpt-5.6-sol`):
 ### Predictive Hypotheses for Unseen Tasks
 
 1. **On Task 7 (Architectural Boundary, #13074)**:
-   Because fixing `ValidationInfo.field_name` requires editing Rust `pydantic-core/src/validators/model_fields.rs` and compiling via `maturin`, Baseline and Digfox v1.0 are predicted to attempt Python-level monkey-patching of `model_validate_json()`. Digfox v1.1 is expected to identify the Rust FFI boundary, but whether it can compile and test the Rust extension or falls back to a Python wrapper will test the boundary guidance.
+   Because fixing `ValidationInfo.field_name` requires editing Rust `pydantic-core/src/validators/model_fields.rs` and compiling via `maturin`, Baseline and Fox v1.0 are predicted to attempt Python-level monkey-patching of `model_validate_json()`. Fox v1.1 is expected to identify the Rust FFI boundary, but whether it can compile and test the Rust extension or falls back to a Python wrapper will test the boundary guidance.
 
 2. **On Task 8 (Conventional Bug, #13051)**:
-   Because the fix is a single-line modification in `pydantic/main.py` (`(self.__pydantic_extra__ or {}) == (other.__pydantic_extra__ or {})`), Baseline will likely solve it rapidly in ~30 seconds. Digfox v1.0 will incur ~80s of ceremonial overhead. Digfox v1.1's Ground and Change steps should solve it with minimal overhead (~45s), demonstrating whether the streamlined workflow avoids penalizing simple tasks.
+   Because the fix is a single-line modification in `pydantic/main.py` (`(self.__pydantic_extra__ or {}) == (other.__pydantic_extra__ or {})`), Baseline will likely solve it rapidly in ~30 seconds. Fox v1.0 will incur ~80s of ceremonial overhead. Fox v1.1's Ground and Change steps should solve it with minimal overhead (~45s), demonstrating whether the streamlined workflow avoids penalizing simple tasks.

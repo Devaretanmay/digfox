@@ -27,4 +27,4 @@ An agent should not generate purported footage, testimonials, or source facts. P
 
 ## Example C: one-off CSV rename
 
-Input is known; output is renaming headers and exporting another CSV once. **Decision**: write a small script, not a workflow architecture. This is the correct use of Digfox when the answer is *do less*.
+Input is known; output is renaming headers and exporting another CSV once. **Decision**: write a small script, not a workflow architecture. This is the correct use of Fox when the answer is *do less*.

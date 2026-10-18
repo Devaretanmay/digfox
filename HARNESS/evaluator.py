@@ -1,4 +1,4 @@
-"""Evaluator module for the Digfox benchmark suite.
+"""Evaluator module for the Fox benchmark suite.
 
 Scores live agent runs across five dimensions:
 1. Functional Correctness (40 points)

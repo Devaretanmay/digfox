@@ -1,8 +1,8 @@
-# Prioritized Digfox Improvements
+# Prioritized Fox Improvements
 
-Based on empirical data from the 6-trial real-world benchmark on `pydantic/pydantic` (#12884), this document presents concrete, evidence-backed improvements to the Digfox Agent Skill (`skills/digfox`).
+Based on empirical data from the 6-trial real-world benchmark on `pydantic/pydantic` (#12884), this document presents concrete, evidence-backed improvements to the Fox Agent Skill (`skills/fox`).
 
-The benchmark demonstrated score parity (84.67/100 for both Baseline and Digfox) and revealed that Digfox adds an +8.76% prompt token overhead without improving task completion rates or preventing nested model failure modes.
+The benchmark demonstrated score parity (84.67/100 for both Baseline and Fox) and revealed that Fox adds an +8.76% prompt token overhead without improving task completion rates or preventing nested model failure modes.
 
 The following improvements address these measured limitations.
 
@@ -11,7 +11,7 @@ The following improvements address these measured limitations.
 ## Priority 1 (High): Add Architectural Boundary Reconnaissance Instructions
 
 ### Problem Observed
-In all 6 benchmark trials (3 Baseline, 3 Digfox), agents produced patches in `pydantic/main.py` that passed 9 out of 10 acceptance tests but consistently failed check 6 (`test_06_nested_models`).
+In all 6 benchmark trials (3 Baseline, 3 Fox), agents produced patches in `pydantic/main.py` that passed 9 out of 10 acceptance tests but consistently failed check 6 (`test_06_nested_models`).
 Because `BaseModel.model_dump()` delegates to `self.__pydantic_serializer__.to_python()` (a compiled Rust extension in `pydantic-core`), Rust traverses child models directly in C/Rust without re-invoking `inner.model_dump()` in Python.
 Neither agent investigated whether the serialization defect lived in Python or the underlying Rust engine. As confirmed by Pydantic PR #12918, the real fix required editing `pydantic-core/src/serializers/fields.rs` in Rust.
 
@@ -26,11 +26,11 @@ In Stage 1 (Scope) and Stage 2 (Investigate), add explicit architectural guidanc
 ## Priority 2 (High): Eliminate Ceremonial Stage-Gate Narrative Bloat
 
 ### Problem Observed
-The Digfox skill currently injects ~3,000 prompt tokens into context. On `gpt-5.6-sol`, this produced an +8.76% token overhead (37,350 tokens per run for Digfox vs 34,342 for baseline) with zero increase in benchmark score (84.67 vs 84.67).
+The Fox skill currently injects ~3,000 prompt tokens into context. On `gpt-5.6-sol`, this produced an +8.76% token overhead (37,350 tokens per run for Fox vs 34,342 for baseline) with zero increase in benchmark score (84.67 vs 84.67).
 Modern coding models already exhibit logical decomposition (scoping, reading, patching, and testing). Forcing verbose markdown stage-gate headers adds context clutter and cost without changing the resulting patch code.
 
 ### Recommended Instruction
-- Compress `skills/digfox/SKILL.md` from ~2,500 words down to under 500 words.
+- Compress `skills/fox/SKILL.md` from ~2,500 words down to under 500 words.
 - Remove rigid stage narrative requirements and replace them with a concise 4-step checklist:
   1. Ground: Reproduce the defect with a minimal standalone script.
   2. Inspect: Check the true engine boundary (Python vs compiled backend).
@@ -42,7 +42,7 @@ Modern coding models already exhibit logical decomposition (scoping, reading, pa
 ## Priority 3 (Medium): Enforce Multi-Format and Composite Structure Testing
 
 ### Problem Observed
-In Trial 1 of the benchmark, both baseline and Digfox agents patched `BaseModel.model_dump()` but completely missed `BaseModel.model_dump_json()`, resulting in invalid JSON output containing duplicate keys. Only when the reproducer explicitly asserted on `model_dump_json()` in Trials 2 and 3 did the agents patch both methods.
+In Trial 1 of the benchmark, both baseline and Fox agents patched `BaseModel.model_dump()` but completely missed `BaseModel.model_dump_json()`, resulting in invalid JSON output containing duplicate keys. Only when the reproducer explicitly asserted on `model_dump_json()` in Trials 2 and 3 did the agents patch both methods.
 
 ### Recommended Instruction
 In Stage 5 (Verify), add specific verification rules for data transformation components:

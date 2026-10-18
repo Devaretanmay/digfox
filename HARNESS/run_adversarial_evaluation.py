@@ -7,13 +7,13 @@ import shutil
 import subprocess
 from typing import Dict, List, Tuple
 
-TEMPLATE_REPO = "/tmp/digfox_eval/pydantic_repo"
+TEMPLATE_REPO = "/tmp/fox_eval/pydantic_repo"
 ADVERSARIAL_SUITE = os.path.abspath("HARNESS/fixtures/task1_adversarial_suite.py")
 PATCHES_DIR = "HARNESS/patches"
 
 
 def evaluate_patch(name: str, patch_file: str | None) -> Dict[str, any]:
-    workdir = f"/tmp/digfox_adversarial_{name}"
+    workdir = f"/tmp/fox_adversarial_{name}"
     if os.path.exists(workdir):
         shutil.rmtree(workdir)
 
@@ -98,12 +98,12 @@ def main():
         ("Baseline Trial 1", "HARNESS/patches/task1_pydantic_12884_baseline_trial1.patch"),
         ("Baseline Trial 2", "HARNESS/patches/task1_pydantic_12884_baseline_trial2.patch"),
         ("Baseline Trial 3", "HARNESS/patches/task1_pydantic_12884_baseline_trial3.patch"),
-        ("Digfox v1.0 Trial 1", "HARNESS/patches/task1_pydantic_12884_digfox_trial1.patch"),
-        ("Digfox v1.0 Trial 2", "HARNESS/patches/task1_pydantic_12884_digfox_trial2.patch"),
-        ("Digfox v1.0 Trial 3", "HARNESS/patches/task1_pydantic_12884_digfox_trial3.patch"),
-        ("Digfox v1.1 Trial 1", "HARNESS/patches/task1_pydantic_12884_digfox_v1.1_trial1.patch"),
-        ("Digfox v1.1 Trial 2", "HARNESS/patches/task1_pydantic_12884_digfox_v1.1_trial2.patch"),
-        ("Digfox v1.1 Trial 3", "HARNESS/patches/task1_pydantic_12884_digfox_v1.1_trial3.patch"),
+        ("Fox v1.0 Trial 1", "HARNESS/patches/task1_pydantic_12884_fox_trial1.patch"),
+        ("Fox v1.0 Trial 2", "HARNESS/patches/task1_pydantic_12884_fox_trial2.patch"),
+        ("Fox v1.0 Trial 3", "HARNESS/patches/task1_pydantic_12884_fox_trial3.patch"),
+        ("Fox v1.1 Trial 1", "HARNESS/patches/task1_pydantic_12884_fox_v1.1_trial1.patch"),
+        ("Fox v1.1 Trial 2", "HARNESS/patches/task1_pydantic_12884_fox_v1.1_trial2.patch"),
+        ("Fox v1.1 Trial 3", "HARNESS/patches/task1_pydantic_12884_fox_v1.1_trial3.patch"),
     ]
 
     all_res = []

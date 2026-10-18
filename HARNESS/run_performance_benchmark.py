@@ -10,7 +10,7 @@ import time
 import tracemalloc
 from typing import Dict, List
 
-TEMPLATE_REPO = "/tmp/digfox_eval/pydantic_repo"
+TEMPLATE_REPO = "/tmp/fox_eval/pydantic_repo"
 BENCHMARK_SCRIPT = """
 import time
 import tracemalloc
@@ -94,7 +94,7 @@ print(f"RESULT:flat_time={flat_time:.2f},flat_mem={flat_mem:.2f},coll_time={coll
 
 
 def run_benchmark_on_target(name: str, patch_file: str | None) -> Dict[str, float]:
-    workdir = f"/tmp/digfox_perf_{name.replace(' ', '_')}"
+    workdir = f"/tmp/fox_perf_{name.replace(' ', '_')}"
     if os.path.exists(workdir):
         shutil.rmtree(workdir)
 
@@ -136,9 +136,9 @@ def main():
     targets = [
         ("Clean (unpatched)", None),
         ("Baseline Trial 2", "HARNESS/patches/task1_pydantic_12884_baseline_trial2.patch"),
-        ("Digfox v1.0 Trial 2", "HARNESS/patches/task1_pydantic_12884_digfox_trial2.patch"),
-        ("Digfox v1.1 Trial 2", "HARNESS/patches/task1_pydantic_12884_digfox_v1.1_trial2.patch"),
-        ("Digfox v1.1 Trial 3", "HARNESS/patches/task1_pydantic_12884_digfox_v1.1_trial3.patch"),
+        ("Fox v1.0 Trial 2", "HARNESS/patches/task1_pydantic_12884_fox_trial2.patch"),
+        ("Fox v1.1 Trial 2", "HARNESS/patches/task1_pydantic_12884_fox_v1.1_trial2.patch"),
+        ("Fox v1.1 Trial 3", "HARNESS/patches/task1_pydantic_12884_fox_v1.1_trial3.patch"),
     ]
 
     print("Running repeatable performance benchmarks (3 runs averaged)...")

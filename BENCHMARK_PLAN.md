@@ -1,10 +1,10 @@
-# Digfox Real-World Benchmark Plan
+# Fox Real-World Benchmark Plan
 
 ## Executive Summary
 
-This document defines the formal methodology, task catalog, experimental controls, and scoring criteria for evaluating the Digfox Agent Skill against baseline coding agents on real-world software defects.
+This document defines the formal methodology, task catalog, experimental controls, and scoring criteria for evaluating the Fox Agent Skill against baseline coding agents on real-world software defects.
 
-The evaluation measures whether the disciplined six-stage process prescribed by Digfox (Scope, Investigate, Decide, Build, Verify, Deliver) and its evidence ledger mechanisms produce verifiable improvements in agent correctness, evidence quality, and regression safety, or whether they introduce unproductive overhead.
+The evaluation measures whether the disciplined six-stage process prescribed by Fox (Scope, Investigate, Decide, Build, Verify, Deliver) and its evidence ledger mechanisms produce verifiable improvements in agent correctness, evidence quality, and regression safety, or whether they introduce unproductive overhead.
 
 ---
 
@@ -12,11 +12,11 @@ The evaluation measures whether the disciplined six-stage process prescribed by 
 
 The benchmark is designed to answer five specific empirical questions:
 
-1. **Task Completion Rate**: Does Digfox increase the proportion of tasks resolved with functionally correct, regression-free code modifications?
-2. **Claim Grounding and Factuality**: Does Digfox reduce unsupported claims, hallucinated file paths, fabricated tool invocations, and false test passes?
-3. **Patch Quality and Safety**: Does Digfox produce more surgical, targeted patches while avoiding over-engineering and unauthorized mutations?
-4. **Resource Overhead**: What is the quantitative cost of Digfox in elapsed wall-clock time, token consumption, and API expenses?
-5. **Instructional Utility**: Which specific instructions in Digfox drive observed behavioral improvements, and which instructions introduce friction or redundant actions?
+1. **Task Completion Rate**: Does Fox increase the proportion of tasks resolved with functionally correct, regression-free code modifications?
+2. **Claim Grounding and Factuality**: Does Fox reduce unsupported claims, hallucinated file paths, fabricated tool invocations, and false test passes?
+3. **Patch Quality and Safety**: Does Fox produce more surgical, targeted patches while avoiding over-engineering and unauthorized mutations?
+4. **Resource Overhead**: What is the quantitative cost of Fox in elapsed wall-clock time, token consumption, and API expenses?
+5. **Instructional Utility**: Which specific instructions in Fox drive observed behavioral improvements, and which instructions introduce friction or redundant actions?
 
 ---
 
@@ -26,12 +26,12 @@ The benchmark is designed to answer five specific empirical questions:
 
 Every benchmark task is evaluated across two isolated experimental conditions:
 
-- **Condition A (Control / Baseline)**: Standard coding agent instructions. The agent receives the repository path, problem statement, and standard tool capabilities (source search, file read/write, bash execution). Digfox skill instructions and scripts are omitted.
-- **Condition B (Treatment / Digfox)**: Digfox-enabled coding agent. The agent receives the identical workspace, problem statement, and tool capabilities, plus the active Digfox skill (`SKILL.md`) and access to Digfox helper utilities (`proof.py`, `scaffold.py`, `audit.py`).
+- **Condition A (Control / Baseline)**: Standard coding agent instructions. The agent receives the repository path, problem statement, and standard tool capabilities (source search, file read/write, bash execution). Fox skill instructions and scripts are omitted.
+- **Condition B (Treatment / Fox)**: Fox-enabled coding agent. The agent receives the identical workspace, problem statement, and tool capabilities, plus the active Fox skill (`SKILL.md`) and access to Fox helper utilities (`proof.py`, `scaffold.py`, `audit.py`).
 
 ### 2.2 Control Variables
 
-To isolate the effect of Digfox from extraneous variance, the following factors are held strictly constant across runs:
+To isolate the effect of Fox from extraneous variance, the following factors are held strictly constant across runs:
 - **Underlying Model**: The identical foundation model checkpoint and generation parameters are used for paired trials.
 - **Initial Workspace State**: Each run starts from a pristine Git worktree cloned at the pinned commit hash.
 - **Tool Permissions**: File reading, editing, and command execution permissions are identical in both conditions.

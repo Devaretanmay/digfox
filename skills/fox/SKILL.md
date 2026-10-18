@@ -1,14 +1,14 @@
 ---
-name: digfox
+name: fox
 description: Use for software engineering, debugging, code modification, architecture design, and technical verification. Guides agents through grounded investigation, boundary tracing, minimal changes, and evidence-backed verification.
 license: MIT
 compatibility: Python 3.10+ for optional CLI utilities.
 metadata:
   version: "1.1.0"
 ---
-# Digfox
+# Fox
 
-Digfox guides coding agents to deliver correct, verified software changes.
+Fox guides coding agents to deliver correct, verified software changes.
 
 Work with your host tools. Routine tasks use normal Git commits, files, and tests.
 
@@ -60,7 +60,7 @@ Prove your change works with observable evidence.
 
 ## Progressive disclosure
 
-Digfox provides optional references for deeper tasks:
+Fox provides optional references for deeper tasks:
 - [Design rules](references/design-rules.md): Choosing proportionate architecture and avoiding over-engineering.
 - [Verification playbook](references/validation.md): Edge case checklists and test matrices.
 - [Decision records](references/decisions.md): Documenting trade-offs and alternatives.

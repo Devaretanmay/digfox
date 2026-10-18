@@ -1,4 +1,4 @@
-"""Security, integrity and behavior tests for Digfox's record-keeping tools."""
+"""Security, integrity and behavior tests for Fox's record-keeping tools."""
 from __future__ import annotations
 
 import importlib.util
@@ -16,9 +16,9 @@ def load(name, path):
     spec.loader.exec_module(mod)
     return mod
 
-proof = load("proof", ROOT / "skills/digfox/scripts/proof.py")
-scaffold = load("scaffold", ROOT / "skills/digfox/scripts/scaffold.py")
-audit = load("audit", ROOT / "skills/digfox/scripts/audit.py")
+proof = load("proof", ROOT / "skills/fox/scripts/proof.py")
+scaffold = load("scaffold", ROOT / "skills/fox/scripts/scaffold.py")
+audit = load("audit", ROOT / "skills/fox/scripts/audit.py")
 installer = load("installer", ROOT / "install.py")
 
 
@@ -174,7 +174,7 @@ class SkillTests(unittest.TestCase):
         (src / "SKILL.md").write_text("---\nname: rea-investigate\ndescription: investigation\n---\n")
         (src / "scripts" / "case.py").write_text("# REA original")
         dests = installer.install("claude", project, rea_path=rea)
-        self.assertEqual([p.name for p in dests], ["digfox", "rea-investigate"])
+        self.assertEqual([p.name for p in dests], ["fox", "rea-investigate"])
         self.assertIn("# REA original", (dests[1] / "scripts" / "case.py").read_text())
 
     def test_installer_invalid_rea_keeps_project_unchanged(self):

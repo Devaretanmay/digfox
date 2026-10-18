@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Digfox: evidence-to-delivery ledger. Python 3.10+, standard library only.
+"""Fox: evidence-to-delivery ledger. Python 3.10+, standard library only.
 
 Never executes analyzed targets, contacts networks, or changes external systems.
 It records claims and checks integrity, not their truth.
@@ -40,7 +40,7 @@ def sha256(path: Path) -> str:
 def must_be_case(root: Path) -> Path:
     root = root.expanduser().resolve()
     if not (root / "case.json").is_file():
-        raise ValueError(f"Not a Digfox case: {root}")
+        raise ValueError(f"Not a Fox case: {root}")
     return root
 
 
@@ -333,7 +333,7 @@ def report(root: Path) -> Path:
     root = must_be_case(root)
     s = read_case(root)
     errors, warnings = check(root)
-    lines = ["# Digfox case report", "", f"**Question:** {escape_md(s['question'])}",
+    lines = ["# Fox case report", "", f"**Question:** {escape_md(s['question'])}",
              f"**Target:** {escape_md(s['target'])}", f"**Mode:** {s['intent']}",
              f"**Phase:** {s['phase']}", f"**Recorded authorization:** {s['authorized']}",
              "", "## Evidence (integrity-checked records)", "",
@@ -481,7 +481,7 @@ def main(argv=None) -> int:
         elif args.cmd == "doctor":
             print("Python: " + sys.version.split()[0] + " (stdlib tools available)")
             print("REA CLI (optional): " + (shutil.which("rea") or "not found"))
-            print("Digfox: file-backed audit only; no direct model, network, or execution integration")
+            print("Fox: file-backed audit only; no direct model, network, or execution integration")
         return 0
     except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)

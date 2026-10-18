@@ -1,4 +1,4 @@
-# Digfox case report
+# Fox case report
 
 **Question:** Prevent alias and extra field collisions from overwriting validated fields during serialization
 **Target:** pydantic/main.py

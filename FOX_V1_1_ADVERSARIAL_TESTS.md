@@ -2,24 +2,24 @@
 
 ## Executive Summary
 
-To rigorously evaluate whether the Digfox v1.1 patches resolved Pydantic issue #12884 or merely satisfied the initial benchmark fixture, we designed an independent 12-point adversarial test suite (`HARNESS/fixtures/task1_adversarial_suite.py`).
+To rigorously evaluate whether the Fox v1.1 patches resolved Pydantic issue #12884 or merely satisfied the initial benchmark fixture, we designed an independent 12-point adversarial test suite (`HARNESS/fixtures/task1_adversarial_suite.py`).
 
 The suite was executed across ten separate configurations:
 1. Clean Pydantic repository (`v2.13.4`, commit `cf67d4b3`)
 2. Baseline Trials 1, 2, 3
-3. Digfox v1.0 Trials 1, 2, 3
-4. Digfox v1.1 Trials 1, 2, 3
+3. Fox v1.0 Trials 1, 2, 3
+4. Fox v1.1 Trials 1, 2, 3
 
 ### Core Empirical Finding
 
 - **Clean Pydantic**: Passed 0 / 12 (demonstrating all 12 tests actively exercise the defect).
 - **Baseline (all 3 trials)**: Passed 0 / 12.
-- **Digfox v1.0 (all 3 trials)**: Passed 0 / 12.
-- **Digfox v1.1 Trial 1**: Passed 0 / 12.
-- **Digfox v1.1 Trial 2**: Passed 1 / 12 (passed only basic immutability; failed 11 / 12).
-- **Digfox v1.1 Trial 3**: Passed 1 / 12 (passed only basic immutability; failed 11 / 12).
+- **Fox v1.0 (all 3 trials)**: Passed 0 / 12.
+- **Fox v1.1 Trial 1**: Passed 0 / 12.
+- **Fox v1.1 Trial 2**: Passed 1 / 12 (passed only basic immutability; failed 11 / 12).
+- **Fox v1.1 Trial 3**: Passed 1 / 12 (passed only basic immutability; failed 11 / 12).
 
-Both "passing" Digfox v1.1 patches failed 91.7% of adversarial tests.
+Both "passing" Fox v1.1 patches failed 91.7% of adversarial tests.
 
 ## 1. Adversarial Test Matrix
 
@@ -46,14 +46,14 @@ Both "passing" Digfox v1.1 patches failed 91.7% of adversarial tests.
 | **Baseline Trial 1** | 0 / 12 | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
 | **Baseline Trial 2** | 0 / 12 | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
 | **Baseline Trial 3** | 0 / 12 | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
-| **Digfox v1.0 Trial 1** | 0 / 12 | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
-| **Digfox v1.0 Trial 2** | 0 / 12 | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
-| **Digfox v1.0 Trial 3** | 0 / 12 | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
-| **Digfox v1.1 Trial 1** | 0 / 12 | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
-| **Digfox v1.1 Trial 2** | 1 / 12 | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | PASS | FAIL |
-| **Digfox v1.1 Trial 3** | 1 / 12 | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | PASS | FAIL |
+| **Fox v1.0 Trial 1** | 0 / 12 | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
+| **Fox v1.0 Trial 2** | 0 / 12 | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
+| **Fox v1.0 Trial 3** | 0 / 12 | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
+| **Fox v1.1 Trial 1** | 0 / 12 | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
+| **Fox v1.1 Trial 2** | 1 / 12 | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | PASS | FAIL |
+| **Fox v1.1 Trial 3** | 1 / 12 | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | PASS | FAIL |
 
-## 3. Failure Mode Analysis for Digfox v1.1 Patches
+## 3. Failure Mode Analysis for Fox v1.1 Patches
 
 ### Failure 1: Complete Bypass via TypeAdapter (T10)
 When users serialize models using Pydantic's official `TypeAdapter`:

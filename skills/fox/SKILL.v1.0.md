@@ -1,16 +1,16 @@
 ---
-name: digfox
+name: fox
 description: Use for complex tasks that need evidence, a design decision, implementation, or an audit. Investigate problems, build small workflows, and check results. Do not use for simple answers or one-step changes.
 license: MIT
 compatibility: Python 3.10+ for optional scripts. REA Investigator is an optional separate skill.
 metadata:
   version: "1.0.0"
 ---
-# Digfox
+# Fox
 
 Find out what is true before you decide what to build.
 
-Digfox guides an agent through research, decisions, implementation, and checks. Use the normal tools in your host agent. The local case ledger is optional. It records evidence but does not prove that a claim is true or that a test ran.
+Fox guides an agent through research, decisions, implementation, and checks. Use the normal tools in your host agent. The local case ledger is optional. It records evidence but does not prove that a claim is true or that a test ran.
 
 ## Choose the task mode
 

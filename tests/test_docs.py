@@ -9,7 +9,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PROOF_PY = ROOT / "skills/digfox/scripts/proof.py"
+PROOF_PY = ROOT / "skills/fox/scripts/proof.py"
 
 
 class DocumentationSmokeTests(unittest.TestCase):

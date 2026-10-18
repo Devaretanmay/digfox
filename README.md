@@ -1,6 +1,6 @@
-# Digfox
+# Fox
 
-> **TL;DR:** Digfox is an open-source agent skill that stops AI coding assistants from guessing. It forces them to trace actual evidence, challenge their own assumptions, pick the simplest fix, and verify it works with real tests before touching your code.
+> **TL;DR:** Fox is an open-source agent skill that stops AI coding assistants from guessing. It forces them to trace actual evidence, challenge their own assumptions, pick the simplest fix, and verify it works with real tests before touching your code.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-brightgreen.svg)]()
@@ -8,7 +8,7 @@
 [![Platform: Codex | Claude | Cursor](https://img.shields.io/badge/Agents-Codex%20%7C%20Claude%20%7C%20Cursor-purple.svg)]()
 [![Tests: 22 Passed](https://img.shields.io/badge/Tests-22%20Passed-success.svg)]()
 
-[Quickstart](#quickstart-in-60-seconds) | [Why This Exists](#why-this-exists-and-why-coding-agents-break-things) | [How It Works](#how-it-works-under-the-hood) | [Agent Compatibility](#installing-digfox-into-your-agent) | [Honest Trade-offs](#honest-trade-offs-and-gotchas)
+[Quickstart](#quickstart-in-60-seconds) | [Why This Exists](#why-this-exists-and-why-coding-agents-break-things) | [How It Works](#how-it-works-under-the-hood) | [Agent Compatibility](#installing-fox-into-your-agent) | [Honest Trade-offs](#honest-trade-offs-and-gotchas)
 
 ---
 
@@ -18,9 +18,9 @@ You paste a bug report into your AI coding assistant. Within five seconds, the m
 
 You run it. It crashes immediately.
 
-We built Digfox because we got tired of babysitting agents that write code before they understand what broke. Most agents fail because they lack basic engineering discipline: they jump straight into generation without verifying facts.
+We built Fox because we got tired of babysitting agents that write code before they understand what broke. Most agents fail because they lack basic engineering discipline: they jump straight into generation without verifying facts.
 
-| The Default Coding Agent | The Digfox-Grounded Agent |
+| The Default Coding Agent | The Fox-Grounded Agent |
 |---|---|
 | Guesses the root cause from a prompt snippet | Traces real code paths from input to output |
 | Invents non-existent helper functions and APIs | Cites exact file locators with SHA-256 byte snapshots |
@@ -36,17 +36,17 @@ Everything runs locally using Python's standard library. No `pip install`, no AP
 
 ```bash
 # 1. Check your local environment
-python3 skills/digfox/scripts/proof.py doctor
+python3 skills/fox/scripts/proof.py doctor
 
 # 2. Start a new investigation case
-python3 skills/digfox/scripts/proof.py init \
+python3 skills/fox/scripts/proof.py init \
   --out ./cases/auth-demo \
   --question "Why does token refresh fail?" \
   --target "src/auth" \
   --intent build
 
 # 3. Save an immutable snapshot of the code you inspected
-python3 skills/digfox/scripts/proof.py evidence \
+python3 skills/fox/scripts/proof.py evidence \
   --file src/auth/token.py \
   --kind source \
   --locator "token.py:15-30" \
@@ -54,7 +54,7 @@ python3 skills/digfox/scripts/proof.py evidence \
   ./cases/auth-demo
 
 # 4. Record what you found, plus an alternative explanation and a test to disprove it
-python3 skills/digfox/scripts/proof.py claim \
+python3 skills/fox/scripts/proof.py claim \
   --statement "Token validation fails due to 2-second client clock skew" \
   --evidence E001 \
   --confidence observed \
@@ -64,7 +64,7 @@ python3 skills/digfox/scripts/proof.py claim \
   ./cases/auth-demo
 
 # 5. Record your decision, what you rejected, and when to change your mind
-python3 skills/digfox/scripts/proof.py decision \
+python3 skills/fox/scripts/proof.py decision \
   --choose "Add 5-second clock skew tolerance window" \
   --instead-of "Bypass expiration check completely" "Force user re-authentication" \
   --why "Minimal standard-compliant fix with zero breaking API changes" \
@@ -74,17 +74,17 @@ python3 skills/digfox/scripts/proof.py decision \
   ./cases/auth-demo
 
 # 6. Verify case integrity and generate a readable markdown report
-python3 skills/digfox/scripts/proof.py check ./cases/auth-demo
-python3 skills/digfox/scripts/proof.py report ./cases/auth-demo
+python3 skills/fox/scripts/proof.py check ./cases/auth-demo
+python3 skills/fox/scripts/proof.py report ./cases/auth-demo
 ```
 
-When you run `report`, Digfox compiles a clean `REPORT.md` inside your case folder summarizing all consulted evidence, file hashes, competing theories, architectural choices, and test outputs.
+When you run `report`, Fox compiles a clean `REPORT.md` inside your case folder summarizing all consulted evidence, file hashes, competing theories, architectural choices, and test outputs.
 
 ---
 
 ## How it works under the hood
 
-Digfox guides coding agents through four pragmatic operating principles:
+Fox guides coding agents through four pragmatic operating principles:
 
 ```text
 Ground -> Trace -> Change -> Verify
@@ -124,15 +124,15 @@ We prefer to tell you what this tool does not do before you discover it in produ
 
 ---
 
-## Installing Digfox into your agent
+## Installing Fox into your agent
 
-Digfox installs directly into standard agent skill directories across leading development environments:
+Fox installs directly into standard agent skill directories across leading development environments:
 
 | Coding Environment | Target Directory | Installer Flag |
 |---|---|---|
-| **OpenAI Codex** | `.agents/skills/digfox` | `--agent codex` |
-| **Anthropic Claude Code** | `.claude/skills/digfox` | `--agent claude` |
-| **Cursor** | `.cursor/skills/digfox` | `--agent cursor` |
+| **OpenAI Codex** | `.agents/skills/fox` | `--agent codex` |
+| **Anthropic Claude Code** | `.claude/skills/fox` | `--agent claude` |
+| **Cursor** | `.cursor/skills/fox` | `--agent cursor` |
 
 Run the installer with your project path:
 

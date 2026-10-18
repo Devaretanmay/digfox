@@ -1,8 +1,8 @@
-# How we evaluate Digfox: real-world benchmark plan
+# How we evaluate Fox: real-world benchmark plan
 
-Our unit tests verify that Digfox scripts execute and that file hashes detect tampering. They do not prove that an AI agent using Digfox writes better code, hallucinates less, or builds simpler systems.
+Our unit tests verify that Fox scripts execute and that file hashes detect tampering. They do not prove that an AI agent using Fox writes better code, hallucinates less, or builds simpler systems.
 
-To measure whether Digfox actually improves agent accuracy and reliability, we test agents on real GitHub issues across major open-source repositories using actual source code, reported bugs, and executable tests. We do not use synthetic coding puzzles, generated bugs, or tasks with pre-supplied solutions.
+To measure whether Fox actually improves agent accuracy and reliability, we test agents on real GitHub issues across major open-source repositories using actual source code, reported bugs, and executable tests. We do not use synthetic coding puzzles, generated bugs, or tasks with pre-supplied solutions.
 
 ---
 
@@ -78,13 +78,13 @@ We run a controlled A/B experiment for every task:
               v                               v
     +-------------------+           +-------------------+
     |     Control A     |           |      Test B       |
-    |  Without Digfox   |           |    With Digfox    |
+    |  Without Fox   |           |    With Fox    |
     |                   |           |                   |
     | Same model        |           | Same model        |
     | Same workspace    |           | Same workspace    |
     | Same tool access  |           | Same tool access  |
     | Same token budget |           | Same token budget |
-    | No Digfox skill   |           | Digfox activated  |
+    | No Fox skill   |           | Fox activated  |
     +---------+---------+           +---------+---------+
               |                               |
               +---------------+---------------+
@@ -102,7 +102,7 @@ We run a controlled A/B experiment for every task:
 1. **Freeze inputs**: Both conditions use the exact same foundation model, prompt, repository commit, tool permissions, and execution time budget.
 2. **Isolate workspaces**: Runs execute in independent, clean working directories cloned from the target commit.
 3. **No leakages**: Hidden regression tests and reference solutions are never provided to either agent.
-4. **Blinded evaluation**: Diff scoring and evidence reviews are conducted without revealing whether the patch was generated with or without Digfox.
+4. **Blinded evaluation**: Diff scoring and evidence reviews are conducted without revealing whether the patch was generated with or without Fox.
 5. **No self-review**: The evaluating agent cannot be the agent that generated the patch.
 
 ---
@@ -133,7 +133,7 @@ A run receives an automatic score of zero on correctness and fails the benchmark
 ## 4. Benchmark matrix and sample size
 
 * **Tasks**: 6 real open-source issues
-* **Conditions**: 2 (Control A without Digfox, Test B with Digfox)
+* **Conditions**: 2 (Control A without Fox, Test B with Fox)
 * **Replications**: 3 runs per condition to check consistency rather than single lucky passes
 * **Total evaluation runs**: 36 runs (6 tasks * 2 conditions * 3 replications)
 * **Model control**: The same underlying model and temperature settings are held constant across all 36 runs.
@@ -142,7 +142,7 @@ A run receives an automatic score of zero on correctness and fails the benchmark
 
 ## 5. Benchmark scorecard
 
-| Task | Issue Reference | Without Digfox (Avg / 100) | With Digfox (Avg / 100) | Status |
+| Task | Issue Reference | Without Fox (Avg / 100) | With Fox (Avg / 100) | Status |
 |------|-----------------|:--------------------------:|:-----------------------:|:------:|
 | 1. Serialization collision | `pydantic/pydantic#12884` | Pending | Pending | Harness ready |
 | 2. Mock serialization | `pydantic/pydantic#13734` | Pending | Pending | Queue |
@@ -158,10 +158,10 @@ A run receives an automatic score of zero on correctness and fails the benchmark
 
 Before running the full 36-run matrix, we set concrete success thresholds:
 
-1. **Correctness delta**: At least a 15-percentage-point higher rate of correct, regression-free completions with Digfox enabled.
-2. **Zero false claims**: Zero instances of fabricated test executions or hallucinated evidence in the Digfox condition.
+1. **Correctness delta**: At least a 15-percentage-point higher rate of correct, regression-free completions with Fox enabled.
+2. **Zero false claims**: Zero instances of fabricated test executions or hallucinated evidence in the Fox condition.
 3. **Safety boundary**: Zero unauthorized writes or out-of-scope modifications.
-4. **Efficiency budget**: No more than 30% additional median token overhead for the Digfox investigation and verification trail, justified by higher first-time correctness.
+4. **Efficiency budget**: No more than 30% additional median token overhead for the Fox investigation and verification trail, justified by higher first-time correctness.
 
 ---
 
@@ -170,4 +170,4 @@ Before running the full 36-run matrix, we set concrete success thresholds:
 Task 1 (`pydantic/pydantic#12884`) serves as the pilot benchmark fixture. The harness provides:
 * A standalone reproduction script demonstrating the validated field overwrite bug.
 * An isolated test harness assessing collision handling, alias preservation, and extra-field retention.
-* An example Digfox case ledger recording the investigation, hypotheses, and verification checks.
+* An example Fox case ledger recording the investigation, hypotheses, and verification checks.
