@@ -24,7 +24,7 @@ For research or design-only tasks, gather primary evidence and define how to che
 Follow one representative input through the actual execution path to the observable output. Identify the component that owns the behavior, not merely the public API that exposes it.
 Cross boundaries when relevant: wrappers to native engines, clients to servers, handlers to databases, producers to queues/workers, source to generated code.
 Check whether nested objects, alternate entry points, error paths, or async execution bypass the suspected fix.
-Form a plausible competing explanation. Test which cause is supported. Stop exploring once the owner is clear.
+Form a competing explanation and a test that could disprove your diagnosis. Stop exploring when evidence distinguishes them.
 
 ## 3. Decide and change
 
@@ -38,7 +38,7 @@ For a design task, compare proportionate options and state the selected trade-of
 
 Run the original reproducer and targeted tests. Then run relevant regressions. For generated code, check syntax/compilation.
 Select risk-based checks: nested and collection inputs; alternate public entry points; JSON/binary output; configuration and aliases; repeated execution; state mutation; failure paths. Do not run irrelevant matrices.
-Inspect the diff for scope creep and unintended side effects. If the owning layer cannot be changed or tested, label the result partial or blocked, not fixed.
+Try to disprove the fix with a counterexample through another relevant entry point. Inspect the diff for side effects. If the owning layer cannot be changed or tested, label the result partial or blocked, not fixed.
 Report only: outcome, root cause/evidence, changed files, actual test commands/results, unresolved risks. Keep prose short; preserve exact technical facts, paths, errors, and safety warnings. Do not repeat process narration.
 
 ## Boundaries
