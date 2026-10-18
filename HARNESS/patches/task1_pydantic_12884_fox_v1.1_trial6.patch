@@ -1,0 +1,124 @@
+diff --git a/pydantic/main.py b/pydantic/main.py
+index 2ed62e5f..6e032ef7 100644
+--- a/pydantic/main.py
++++ b/pydantic/main.py
+@@ -424,6 +424,93 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
+             copied.__pydantic_fields_set__.update(update.keys())
+         return copied
+ 
++    def _serialization_value(self, by_alias: bool | None) -> Self:
++        """Return a value whose extras cannot overwrite declared fields during serialization."""
++        def has_collision(value: Any, seen: set[int]) -> bool:
++            value_id = id(value)
++            if value_id in seen:
++                return False
++            seen.add(value_id)
++
++            if isinstance(value, BaseModel):
++                extra = value.__pydantic_extra__
++                serialize_by_alias = value.model_config.get('serialize_by_alias') if by_alias is None else by_alias
++                field_keys = {
++                    field.serialization_alias if serialize_by_alias and field.serialization_alias is not None else name
++                    for name, field in value.__pydantic_fields__.items()
++                    if name in value.__dict__
++                }
++                if extra and not field_keys.isdisjoint(extra):
++                    return True
++                return any(has_collision(item, seen) for item in value.__dict__.values()) or bool(
++                    extra and any(has_collision(item, seen) for item in extra.values())
++                )
++            if type(value) in (list, tuple, set, frozenset):
++                return any(has_collision(item, seen) for item in value)
++            if type(value) is dict:
++                return any(has_collision(item, seen) for item in value.values())
++            return False
++
++        if not has_collision(self, set()):
++            return self
++
++        def without_collisions(value: Any, memo: dict[int, Any]) -> Any:
++            value_id = id(value)
++            if value_id in memo:
++                return memo[value_id]
++
++            if isinstance(value, BaseModel):
++                result = value.__copy__()
++                memo[value_id] = result
++                _object_setattr(
++                    result,
++                    '__dict__',
++                    {key: without_collisions(item, memo) for key, item in value.__dict__.items()},
++                )
++                extra = value.__pydantic_extra__
++                if extra is not None:
++                    serialize_by_alias = value.model_config.get('serialize_by_alias') if by_alias is None else by_alias
++                    field_keys = {
++                        field.serialization_alias if serialize_by_alias and field.serialization_alias is not None else name
++                        for name, field in value.__pydantic_fields__.items()
++                        if name in value.__dict__
++                    }
++                    _object_setattr(
++                        result,
++                        '__pydantic_extra__',
++                        {
++                            key: without_collisions(item, memo)
++                            for key, item in extra.items()
++                            if key not in field_keys
++                        },
++                    )
++                return result
++            if type(value) is list:
++                result_list: list[Any] = []
++                memo[value_id] = result_list
++                result_list.extend(without_collisions(item, memo) for item in value)
++                return result_list
++            if type(value) is dict:
++                result_dict: dict[Any, Any] = {}
++                memo[value_id] = result_dict
++                result_dict.update((key, without_collisions(item, memo)) for key, item in value.items())
++                return result_dict
++            if type(value) is tuple:
++                result_tuple = tuple(without_collisions(item, memo) for item in value)
++                memo[value_id] = result_tuple
++                return result_tuple
++            if type(value) is set:
++                result_set = {without_collisions(item, memo) for item in value}
++                memo[value_id] = result_set
++                return result_set
++            if type(value) is frozenset:
++                result_frozenset = frozenset(without_collisions(item, memo) for item in value)
++                memo[value_id] = result_frozenset
++                return result_frozenset
++            return value
++
++        return without_collisions(self, {})
++
+     def model_dump(
+         self,
+         *,
+@@ -473,7 +560,7 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
+             A dictionary representation of the model.
+         """
+         return self.__pydantic_serializer__.to_python(
+-            self,
++            self._serialization_value(by_alias),
+             mode=mode,
+             by_alias=by_alias,
+             include=include,
+@@ -540,7 +627,7 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
+             A JSON string representation of the model.
+         """
+         return self.__pydantic_serializer__.to_json(
+-            self,
++            self._serialization_value(by_alias),
+             indent=indent,
+             ensure_ascii=ensure_ascii,
+             include=include,
+diff --git a/tests/pydantic_core b/tests/pydantic_core
+deleted file mode 120000
+index 3cc4ac11..00000000
+--- a/tests/pydantic_core
++++ /dev/null
+@@ -1 +0,0 @@
+-../pydantic-core/tests
+\ No newline at end of file

@@ -33,6 +33,11 @@ When testing changes, prioritize checks based on the component's failure modes:
    - Verify that calling an operation multiple times on the same object produces consistent results.
    - Check that serialization or transformation routines do not mutate the input model or source instance.
 
+8. **Alternative public entry points and shared engines**
+   - Libraries frequently provide multiple entry points sharing an underlying engine (for example: adapter classes, streaming processors, or direct engine access).
+   - Verify whether alternative entry points bypass your patch.
+   - If an alternative entry point fails because the underlying engine is uneditable in the current environment, do not create superficial wrappers; report the boundary as an explicit blocker.
+
 Do not require every test category for every task. Select checks based on the affected component and its failure risks.
 
 ## Test matrix

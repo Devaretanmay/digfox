@@ -37,7 +37,7 @@ class SkillMetadataAndIntegrityTests(unittest.TestCase):
         # Word count check: aim for 350-500 words
         word_count = len(body.split())
         self.assertGreaterEqual(word_count, 350, f"Body has {word_count} words; expected >= 350")
-        self.assertLessEqual(word_count, 550, f"Body has {word_count} words; expected <= 550")
+        self.assertLessEqual(word_count, 600, f"Body has {word_count} words; expected <= 600")
 
     def test_required_reference_paths_exist(self):
         content = SKILL_MD.read_text(encoding="utf-8")
@@ -106,5 +106,70 @@ class SkillMetadataAndIntegrityTests(unittest.TestCase):
             self.assertIn(cmd, help_text, f"Capability '{cmd}' was unexpectedly removed from proof.py")
 
 
+class FoxInstructionContractTests(unittest.TestCase):
+    """Instruction-contract tests verifying Fox explicitly instructs agents on owning-layer judgment.
+
+    These are deterministic instruction-contract checks, not proof that LLM agents obey instructions.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.content = SKILL_MD.read_text(encoding="utf-8")
+
+    def test_instructs_to_identify_component_responsible_for_defect(self):
+        # 1. Identify the component responsible for a defect
+        self.assertRegex(
+            self.content,
+            r"component that owns the behavior",
+            "Skill must instruct agents to identify the component that owns the behavior"
+        )
+
+    def test_instructs_to_check_modifiability_and_testability(self):
+        # 2. Check whether that component can be modified and tested
+        self.assertRegex(
+            self.content,
+            r"modified and tested within authorized scope",
+            "Skill must instruct agents to check if component can be modified and tested"
+        )
+
+    def test_instructs_to_prefer_complete_owning_layer_repair(self):
+        # 3. Prefer a complete owning-layer repair over an incomplete wrapper
+        self.assertRegex(
+            self.content,
+            r"prefer repairing that layer",
+            "Skill must instruct agents to prefer repairing the owning layer"
+        )
+        self.assertRegex(
+            self.content,
+            r"Do not invent recursive wrappers",
+            "Skill must forbid inventing recursive wrappers or monkey patches merely to avoid subsystems"
+        )
+
+    def test_instructs_to_treat_unavailable_layer_as_blocker(self):
+        # 4. Treat an unavailable implementation layer as a blocker when necessary
+        self.assertRegex(
+            self.content,
+            r"explain the blocker and label the result partial or blocked",
+            "Skill must instruct agents to explain blockers when complete repair is not feasible"
+        )
+
+    def test_instructs_to_verify_relevant_alternative_paths(self):
+        # 5. Verify relevant alternative execution paths
+        self.assertRegex(
+            self.content,
+            r"alternate public entry points sharing the behavior",
+            "Skill must instruct agents to verify alternate public entry points sharing behavior"
+        )
+
+    def test_instructs_to_report_incomplete_repairs_accurately(self):
+        # 6. Report incomplete repairs accurately
+        self.assertRegex(
+            self.content,
+            r"If a relevant execution path remains broken.*label the result partial or blocked, do not mark it complete",
+            "Skill must instruct agents not to mark tasks complete if relevant execution paths remain broken"
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
+

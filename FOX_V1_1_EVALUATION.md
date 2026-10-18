@@ -11,8 +11,8 @@ All trials were executed autonomously using OpenAI Codex CLI (`gpt-5.6-sol`) ins
 
 | Metric | Baseline (Codex) | Fox v1.0 | Fox v1.1 | v1.1 vs Baseline | v1.1 vs v1.0 |
 |---|---|---|---|---|---|
-| Task 1 Strict Pass Rate (Pydantic #12884) | 0.0% (0 / 3) | 0.0% (0 / 3) | 60.0% (3 / 5) | +60.0% | +60.0% |
-| Task 1 Mean Score (/100) | 84.67 | 84.67 | 91.40 | +6.73 pts | +6.73 pts |
+| Task 1 Strict Pass Rate (Pydantic #12884) | 0.0% (0 / 3) | 0.0% (0 / 3) | 66.7% (4 / 6) | +66.7% | +66.7% |
+| Task 1 Mean Score (/100) | 84.67 | 84.67 | 92.00 | +7.33 pts | +7.33 pts |
 | Task 5 Pass Rate (Setup-uv #1028) | 100.0% (1 / 1) | 100.0% (1 / 1) | 100.0% (1 / 1) | Parity | Parity |
 | Task 5 Execution Time | 39.46s | 80.25s | 59.27s | +50.2% | -26.1% (faster) |
 | Task 5 Token Consumption | 21,568 | 34,471 | 31,836 | +47.6% | -7.6% (fewer) |
@@ -70,6 +70,7 @@ The following data reflects the recorded executions in `RESULTS.csv`:
 | Fox v1.1 | 3 | PASSED | 95.0 | 40.0 | 20.0 | 15.0 | 10.0 | 10.0 | 94.51 | 37,093 | 14 | 0 |
 | Fox v1.1 | 4 | PASSED | 95.0 | 40.0 | 20.0 | 15.0 | 10.0 | 10.0 | 182.05 | 83,575 | 19 | 0 |
 | Fox v1.1 | 5 | FAILED | 86.0 | 36.0 | 20.0 | 10.0 | 15.0 | 5.0 | 78.77 | 44,207 | 9 | 0 |
+| Fox v1.1 | 6 | PASSED | 95.0 | 40.0 | 20.0 | 15.0 | 10.0 | 10.0 | 120.43 | 50,798 | 13 | 0 |
 
 ### Task 5: Setup-uv #1028 (Bundled Cache Error Class Renaming)
 

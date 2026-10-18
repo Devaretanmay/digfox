@@ -14,32 +14,34 @@ Use host tools. Match effort to risk. Avoid reports, case folders, scripts, or n
 
 ## 1. Ground
 
-State the requested outcome, constraints, and what would count as done.
-Inspect the relevant code, configuration, history, and actual behavior before proposing a fix. Distinguish observed facts from assumptions.
-For a reproducible defect, use or write the smallest executable reproducer and confirm it fails before the change when feasible. If blocked, report why.
-For research or design-only tasks, gather primary evidence and define how to check conclusions. Do not claim implementation.
+State outcome, constraints, and done criteria. Inspect code, config, history, and runtime behavior before proposing a fix. Distinguish observed facts from assumptions.
+For reproducible defects, use or write the smallest reproducer and confirm failure before editing. If blocked, report why.
+For research or design, gather primary evidence and define verification. Do not claim implementation.
 
 ## 2. Trace
 
-Follow one representative input through the actual execution path to the observable output. Identify the component that owns the behavior, not merely the public API that exposes it.
-Cross boundaries when relevant: wrappers to native engines, clients to servers, handlers to databases, producers to queues/workers, source to generated code.
+Follow one input through execution to observable output. Identify the component that owns the behavior, not merely the public API exposing it.
+Cross boundaries: wrappers to native engines, clients to servers, handlers to databases, source to generated code.
+Determine ownership and feasibility: Is the owning component available and editable in the repository? Can it be modified and tested within authorized scope? Will a change there cover nested execution and alternate entry points?
 Check whether nested objects, alternate entry points, error paths, or async execution bypass the suspected fix.
-Form a competing explanation and a test that could disprove your diagnosis. Stop exploring when evidence distinguishes them.
+Form a competing explanation and a test to disprove your diagnosis. Stop exploring when evidence distinguishes them.
 
 ## 3. Decide and change
 
-Apply YAGNI: implement only what the present requirement demands. Before adding code, ask: Can we do nothing? Is this already implemented? Can existing code, the standard library, or a native feature solve it? Can a small local change solve it without new dependencies or layers?
+Apply YAGNI: implement only what present requirements demand. YAGNI means the simplest complete solution, not the smallest incomplete patch. Ask: Can existing code, standard library, or native features solve it without new layers?
 
-Fix the behavior at its owning layer when feasible. A wrapper is acceptable only if it covers the required entry points and its limits are explicit.
-Prefer a narrow, reversible change. Preserve public contracts, security checks, error handling, and relevant tests. Do not optimize for fewer lines at the expense of correctness.
-For a design task, compare proportionate options and state the selected trade-off. For an audit, report findings without unauthorized changes. Extract reusable workflows only from proven work.
+If the owning layer is available, editable, authorized, and testable, prefer repairing that layer. Do not mistake a public API wrapper for the engine that owns the work. If unavailable, first investigate supported extension or configuration mechanisms. Do not invent recursive wrappers, monkey patches, or proxy layers merely to avoid working in another language or subsystem.
+If a complete repair cannot be made within the permitted environment, explain the blocker and label the result partial or blocked, not fixed.
+Prefer a narrow, reversible change. Preserve contracts, security checks, error handling, and tests. Do not trade correctness for fewer lines.
+For design, state trade-offs. For audits, report without unauthorized changes. Extract reusable workflows only from proven work.
 
 ## 4. Verify and deliver
 
-Run the original reproducer and targeted tests. Then run relevant regressions. For generated code, check syntax/compilation.
-Select risk-based checks: nested and collection inputs; alternate public entry points; JSON/binary output; configuration and aliases; repeated execution; state mutation; failure paths. Do not run irrelevant matrices.
-Try to disprove the fix with a counterexample through another relevant entry point. Inspect the diff for side effects. If the owning layer cannot be changed or tested, label the result partial or blocked, not fixed.
-Report only: outcome, root cause/evidence, changed files, actual test commands/results, unresolved risks. Keep prose short; preserve exact technical facts, paths, errors, and safety warnings. Do not repeat process narration.
+Run the reproducer and targeted tests, then relevant regressions. For generated code, check syntax/compilation.
+Select risk-based checks: nested or delegated paths; alternate public entry points sharing the behavior; JSON/binary output; configuration and aliases; repeated execution; state mutation; failure paths. Do not run irrelevant matrices.
+Try to disprove the fix with a targeted counterexample through another relevant entry point. Inspect the diff for side effects. Check that input state and unrelated behavior remain unchanged.
+If a relevant execution path remains broken or the owning layer cannot be changed, label the result partial or blocked, do not mark it complete.
+Report only: outcome, root cause/evidence, changed files, actual test commands/results, unresolved risks. Keep prose short; preserve exact facts, paths, errors, and safety warnings. Do not repeat process narration.
 
 ## Boundaries
 

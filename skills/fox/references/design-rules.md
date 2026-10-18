@@ -44,3 +44,5 @@ Extract a standalone skill when the process has been observed or tested at least
 ## Complexity warning signs
 
 A design is probably too complex if it invents agents solely to mirror departments, introduces a database without durable concurrency needs, saves identical instructions in several places, includes irrelevant context at every step, or has no way to compare output with acceptance criteria.
+
+It is also defective if it invents elaborate recursive wrappers, proxy layers, or monkey patches merely to avoid working in an underlying editable language or subsystem. If the owning layer is available and authorized, fix it there; if unavailable, document the blocker.

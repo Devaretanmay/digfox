@@ -106,6 +106,7 @@ def main():
         ("Fox v1.1 Trial 3", "HARNESS/patches/task1_pydantic_12884_fox_v1.1_trial3.patch"),
         ("Fox v1.1 Trial 4", "HARNESS/patches/task1_pydantic_12884_fox_v1.1_trial4.patch"),
         ("Fox v1.1 Trial 5", "HARNESS/patches/task1_pydantic_12884_fox_v1.1_trial5.patch"),
+        ("Fox v1.1 Trial 6", "HARNESS/patches/task1_pydantic_12884_fox_v1.1_trial6.patch"),
     ]
 
     all_res = []

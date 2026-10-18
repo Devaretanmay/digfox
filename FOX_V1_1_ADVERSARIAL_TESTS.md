@@ -20,8 +20,9 @@ The suite was executed across eleven separate configurations:
 - **Fox v1.1 Trial 3**: Passed 11 / 12 (passed T1-T9, T11, T12; failed only T10).
 - **Fox v1.1 Trial 4 (New Skill)**: Passed 11 / 12 (passed T1-T9, T11, T12; failed only T10).
 - **Fox v1.1 Trial 5 (New Skill)**: Passed 6 / 12 (applied strict YAGNI, passed root T5, T6, T8, T9, T11, T12; explicitly documented nested boundary to pydantic-core).
+- **Fox v1.1 Trial 6 (Refined Skill)**: Passed 11 / 12 (passed T1-T9, T11, T12; failed only T10).
 
-Fox v1.1 achieved a peak 91.7% pass rate (11/12) on rigorous adversarial tests across Trials 2, 3, and 4, and demonstrated calibrated boundary reporting in Trial 5.
+Fox v1.1 achieved a peak 91.7% pass rate (11/12) on rigorous adversarial tests across Trials 2, 3, 4, and 6, and demonstrated calibrated boundary reporting in Trial 5.
 
 ## 1. Adversarial Test Matrix
 
@@ -56,6 +57,7 @@ Fox v1.1 achieved a peak 91.7% pass rate (11/12) on rigorous adversarial tests a
 | **Fox v1.1 Trial 3** | 11 / 12 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | FAIL | PASS | PASS |
 | **Fox v1.1 Trial 4 (New)** | 11 / 12 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | FAIL | PASS | PASS |
 | **Fox v1.1 Trial 5** | 6 / 12 | FAIL | FAIL | FAIL | FAIL | PASS | PASS | FAIL | PASS | PASS | FAIL | PASS | PASS |
+| **Fox v1.1 Trial 6 (Refined)** | 11 / 12 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | FAIL | PASS | PASS |
 
 ## 3. In-Depth Comparative Analysis
 
