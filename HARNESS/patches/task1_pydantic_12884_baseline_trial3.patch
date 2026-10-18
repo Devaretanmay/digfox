@@ -1,0 +1,66 @@
+diff --git a/pydantic/main.py b/pydantic/main.py
+index 2ed62e5f..2b9916ba 100644
+--- a/pydantic/main.py
++++ b/pydantic/main.py
+@@ -472,8 +472,25 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
+         Returns:
+             A dictionary representation of the model.
+         """
++        model_to_serialize = self
++        if self.__pydantic_extra__:
++            serialize_by_alias = (
++                by_alias if by_alias is not None else self.model_config.get('serialize_by_alias', False)
++            )
++            serialized_field_names = {
++                field.serialization_alias if serialize_by_alias and field.serialization_alias is not None else name
++                for name, field in self.__pydantic_fields__.items()
++            }
++            if serialized_field_names & self.__pydantic_extra__.keys():
++                model_to_serialize = self.__copy__()
++                model_to_serialize.__pydantic_extra__ = {
++                    key: value
++                    for key, value in self.__pydantic_extra__.items()
++                    if key not in serialized_field_names
++                }
++
+         return self.__pydantic_serializer__.to_python(
+-            self,
++            model_to_serialize,
+             mode=mode,
+             by_alias=by_alias,
+             include=include,
+@@ -539,8 +556,25 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
+         Returns:
+             A JSON string representation of the model.
+         """
++        model_to_serialize = self
++        if self.__pydantic_extra__:
++            serialize_by_alias = (
++                by_alias if by_alias is not None else self.model_config.get('serialize_by_alias', False)
++            )
++            serialized_field_names = {
++                field.serialization_alias if serialize_by_alias and field.serialization_alias is not None else name
++                for name, field in self.__pydantic_fields__.items()
++            }
++            if serialized_field_names & self.__pydantic_extra__.keys():
++                model_to_serialize = self.__copy__()
++                model_to_serialize.__pydantic_extra__ = {
++                    key: value
++                    for key, value in self.__pydantic_extra__.items()
++                    if key not in serialized_field_names
++                }
++
+         return self.__pydantic_serializer__.to_json(
+-            self,
++            model_to_serialize,
+             indent=indent,
+             ensure_ascii=ensure_ascii,
+             include=include,
+diff --git a/tests/pydantic_core b/tests/pydantic_core
+deleted file mode 120000
+index 3cc4ac11..00000000
+--- a/tests/pydantic_core
++++ /dev/null
+@@ -1 +0,0 @@
+-../pydantic-core/tests
+\ No newline at end of file

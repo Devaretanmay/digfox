@@ -1,0 +1,136 @@
+diff --git a/pydantic/main.py b/pydantic/main.py
+index 2ed62e5f..15fa6350 100644
+--- a/pydantic/main.py
++++ b/pydantic/main.py
+@@ -79,6 +79,93 @@ IncEx: TypeAlias = Union[set[int], set[str], Mapping[int, Union['IncEx', bool]],
+ _object_setattr = _model_construction.object_setattr
+ 
+ 
++def _extra_serialization_collision(model: BaseModel, by_alias: bool | None, seen: set[int]) -> bool:
++    """Return whether a model graph contains an extra key that collides with a serialized field name."""
++    model_id = id(model)
++    if model_id in seen:
++        return False
++    seen.add(model_id)
++
++    use_alias = model.model_config.get('serialize_by_alias', False) if by_alias is None else by_alias
++    extra = model.__pydantic_extra__
++    if extra and any(
++        ((field.serialization_alias if use_alias else None) or name) in extra
++        for name, field in model.__pydantic_fields__.items()
++    ):
++        return True
++
++    def contains_collision(value: Any) -> bool:
++        if isinstance(value, BaseModel):
++            return _extra_serialization_collision(value, by_alias, seen)
++        if isinstance(value, Mapping):
++            return any(contains_collision(item) for item in value.values())
++        if isinstance(value, (list, tuple, set, frozenset)):
++            return any(contains_collision(item) for item in value)
++        return False
++
++    return any(contains_collision(value) for value in model.__dict__.values()) or (
++        extra is not None and any(contains_collision(value) for value in extra.values())
++    )
++
++
++def _without_extra_serialization_collisions(value: Any, by_alias: bool | None, memo: dict[int, Any]) -> Any:
++    """Copy a model graph, omitting extras that would overwrite serialized fields."""
++    value_id = id(value)
++    if value_id in memo:
++        return memo[value_id]
++
++    if isinstance(value, BaseModel):
++        copied = value.__copy__()
++        memo[value_id] = copied
++        _object_setattr(
++            copied,
++            '__dict__',
++            {key: _without_extra_serialization_collisions(item, by_alias, memo) for key, item in value.__dict__.items()},
++        )
++        extra = value.__pydantic_extra__
++        if extra is not None:
++            use_alias = value.model_config.get('serialize_by_alias', False) if by_alias is None else by_alias
++            field_keys = {
++                (field.serialization_alias if use_alias else None) or name
++                for name, field in value.__pydantic_fields__.items()
++            }
++            _object_setattr(
++                copied,
++                '__pydantic_extra__',
++                {
++                    key: _without_extra_serialization_collisions(item, by_alias, memo)
++                    for key, item in extra.items()
++                    if key not in field_keys
++                },
++            )
++        return copied
++    if isinstance(value, list):
++        copied_list: list[Any] = []
++        memo[value_id] = copied_list
++        copied_list.extend(_without_extra_serialization_collisions(item, by_alias, memo) for item in value)
++        return copied_list
++    if isinstance(value, tuple):
++        copied_tuple = tuple(_without_extra_serialization_collisions(item, by_alias, memo) for item in value)
++        memo[value_id] = copied_tuple
++        return copied_tuple
++    if isinstance(value, dict):
++        copied_dict: dict[Any, Any] = {}
++        memo[value_id] = copied_dict
++        copied_dict.update(
++            (key, _without_extra_serialization_collisions(item, by_alias, memo)) for key, item in value.items()
++        )
++        return copied_dict
++    if isinstance(value, set):
++        copied_set = {_without_extra_serialization_collisions(item, by_alias, memo) for item in value}
++        memo[value_id] = copied_set
++        return copied_set
++    if isinstance(value, frozenset):
++        copied_frozenset = frozenset(_without_extra_serialization_collisions(item, by_alias, memo) for item in value)
++        memo[value_id] = copied_frozenset
++        return copied_frozenset
++    return value
++
++
+ def _check_frozen(model_cls: type[BaseModel], name: str, value: Any) -> None:
+     if model_cls.model_config.get('frozen'):
+         error_type = 'frozen_instance'
+@@ -472,8 +559,13 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
+         Returns:
+             A dictionary representation of the model.
+         """
++        value = (
++            _without_extra_serialization_collisions(self, by_alias, {})
++            if _extra_serialization_collision(self, by_alias, set())
++            else self
++        )
+         return self.__pydantic_serializer__.to_python(
+-            self,
++            value,
+             mode=mode,
+             by_alias=by_alias,
+             include=include,
+@@ -539,8 +631,13 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
+         Returns:
+             A JSON string representation of the model.
+         """
++        value = (
++            _without_extra_serialization_collisions(self, by_alias, {})
++            if _extra_serialization_collision(self, by_alias, set())
++            else self
++        )
+         return self.__pydantic_serializer__.to_json(
+-            self,
++            value,
+             indent=indent,
+             ensure_ascii=ensure_ascii,
+             include=include,
+diff --git a/tests/pydantic_core b/tests/pydantic_core
+deleted file mode 120000
+index 3cc4ac11..00000000
+--- a/tests/pydantic_core
++++ /dev/null
+@@ -1 +0,0 @@
+-../pydantic-core/tests
+\ No newline at end of file

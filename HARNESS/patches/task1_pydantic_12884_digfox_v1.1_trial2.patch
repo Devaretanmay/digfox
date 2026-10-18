@@ -1,0 +1,137 @@
+diff --git a/pydantic/main.py b/pydantic/main.py
+index 2ed62e5f..a3aae307 100644
+--- a/pydantic/main.py
++++ b/pydantic/main.py
+@@ -107,6 +107,102 @@ def _private_setattr_handler(model: BaseModel, name: str, val: Any) -> None:
+     model.__pydantic_private__[name] = val  # pyright: ignore[reportOptionalSubscript]
+ 
+ 
++def _model_for_serialization(
++    model: BaseModel,
++    by_alias: bool | None,
++    include: IncEx | None = None,
++    exclude: IncEx | None = None,
++    exclude_unset: bool = False,
++    exclude_defaults: bool = False,
++    exclude_none: bool = False,
++    seen: set[int] | None = None,
++) -> BaseModel:
++    """Return a non-mutating view of a model with colliding extras removed."""
++    if seen is None:
++        seen = set()
++    if id(model) in seen:
++        return model
++
++    seen.add(id(model))
++    try:
++        serialize_by_alias = (
++            by_alias if by_alias is not None else model.model_config.get('serialize_by_alias', False)
++        )
++
++        def field_is_serialized(name: str, field: FieldInfo) -> bool:
++            if field.exclude is True:
++                return False
++            if include is not None and name not in include:
++                return False
++            if exclude is not None and name in exclude:
++                excluded = exclude[name] if isinstance(exclude, Mapping) else True
++                if excluded is True or excluded is ...:
++                    return False
++            value = model.__dict__.get(name, PydanticUndefined)
++            if exclude_unset and name not in model.__pydantic_fields_set__:
++                return False
++            if exclude_none and value is None:
++                return False
++            if exclude_defaults and field.default_factory is None and value == field.default:
++                return False
++            return True
++
++        field_keys = {
++            field.serialization_alias if serialize_by_alias and field.serialization_alias is not None else name
++            for name, field in model.__pydantic_fields__.items()
++            if field_is_serialized(name, field)
++        }
++
++        def replace_nested(value: Any) -> Any:
++            if isinstance(value, BaseModel):
++                return _model_for_serialization(
++                    value,
++                    by_alias,
++                    exclude_unset=exclude_unset,
++                    exclude_defaults=exclude_defaults,
++                    exclude_none=exclude_none,
++                    seen=seen,
++                )
++            if type(value) is dict:
++                replaced_items = [(key, item, replace_nested(item)) for key, item in value.items()]
++                if not any(new is not old for _, old, new in replaced_items):
++                    return value
++                return {key: new for key, _, new in replaced_items}
++            elif type(value) is list:
++                replaced = [replace_nested(item) for item in value]
++            elif type(value) is tuple:
++                replaced = tuple(replace_nested(item) for item in value)
++            elif type(value) is set:
++                replaced = {replace_nested(item) for item in value}
++            elif type(value) is frozenset:
++                replaced = frozenset(replace_nested(item) for item in value)
++            else:
++                return value
++            return replaced if any(new is not old for new, old in zip(replaced, value)) else value
++
++        model_dict = {key: replace_nested(value) for key, value in model.__dict__.items()}
++        model_dict_changed = any(model_dict[key] is not value for key, value in model.__dict__.items())
++        extra = model.__pydantic_extra__
++        filtered_extra = (
++            {key: replace_nested(value) for key, value in extra.items() if key not in field_keys}
++            if extra is not None
++            else None
++        )
++        extra_changed = extra is not None and (
++            filtered_extra.keys() != extra.keys()
++            or any(filtered_extra[key] is not value for key, value in extra.items() if key in filtered_extra)
++        )
++        if not model_dict_changed and not extra_changed:
++            return model
++
++        copied = model.__copy__()
++        _object_setattr(copied, '__dict__', model_dict)
++        _object_setattr(copied, '__pydantic_extra__', filtered_extra)
++        return copied
++    finally:
++        seen.remove(id(model))
++
++
+ _SIMPLE_SETATTR_HANDLERS: Mapping[str, Callable[[BaseModel, str, Any], None]] = {
+     'model_field': _model_field_setattr_handler,
+     'validate_assignment': lambda model, name, val: model.__pydantic_validator__.validate_assignment(model, name, val),  # pyright: ignore[reportAssignmentType]
+@@ -473,7 +569,9 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
+             A dictionary representation of the model.
+         """
+         return self.__pydantic_serializer__.to_python(
+-            self,
++            _model_for_serialization(
++                self, by_alias, include, exclude, exclude_unset, exclude_defaults, exclude_none
++            ),
+             mode=mode,
+             by_alias=by_alias,
+             include=include,
+@@ -540,7 +638,9 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
+             A JSON string representation of the model.
+         """
+         return self.__pydantic_serializer__.to_json(
+-            self,
++            _model_for_serialization(
++                self, by_alias, include, exclude, exclude_unset, exclude_defaults, exclude_none
++            ),
+             indent=indent,
+             ensure_ascii=ensure_ascii,
+             include=include,
+diff --git a/tests/pydantic_core b/tests/pydantic_core
+deleted file mode 120000
+index 3cc4ac11..00000000
+--- a/tests/pydantic_core
++++ /dev/null
+@@ -1 +0,0 @@
+-../pydantic-core/tests
+\ No newline at end of file
