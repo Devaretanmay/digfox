@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install the Fox agent skill into an agent workspace."""
+"""Install Fox and Fox Graph agent skills into an agent workspace."""
 from __future__ import annotations
 
 import argparse
