@@ -13,4 +13,5 @@ evidence/
 worktrees/
 .fox-stage-*/
 .fox-backup-*/
+brag-output/
 
