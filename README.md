@@ -10,7 +10,7 @@ Fox is an open-source agent skill that guides AI coding assistants through disci
 
 ---
 
-## The problem Fox solves
+## Why it exists
 
 Most AI coding assistants struggle with complex, cross-boundary software problems. When faced with an unfamiliar codebase, they often jump directly into editing, guess root causes from prompt snippets, invent recursive wrappers or monkey patches to avoid lower-level subsystems, and claim tests passed without executing them.
 
@@ -18,7 +18,7 @@ Fox provides an engineering decision framework that stops superficial workaround
 
 ---
 
-## Four-step workflow
+## How it works
 
 Fox organizes agent execution into four sequential phases:
 
@@ -60,7 +60,7 @@ python3 install.py --agent codex --project /path/to/project --force
 
 ---
 
-## Usage example
+## Basic usage
 
 Here is how an agent applies Fox to resolve a real defect:
 
@@ -82,7 +82,7 @@ Fox functions out of the box as a pure skill (`skills/fox/SKILL.md`). For tasks 
 
 ---
 
-## Honest limitations
+## Limitations
 
 - **Skill guidance, not deterministic sandboxing**: Fox provides instructions that direct LLM reasoning; it cannot physically prevent a model from making errors if the model ignores instructions.
 - **Hash validation verifies file integrity, not semantic truth**: The `proof.py` utility verifies that recorded files and test logs have not changed on disk, but does not evaluate whether an assertion is scientifically sound.

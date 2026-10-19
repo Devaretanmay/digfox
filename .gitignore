@@ -4,5 +4,13 @@ __pycache__/
 .DS_Store
 .env
 *.key
+*.log
+*.diff
 cases/
 workflows/
+harness/
+evidence/
+worktrees/
+.fox-stage-*/
+.fox-backup-*/
+
