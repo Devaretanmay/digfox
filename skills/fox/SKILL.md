@@ -1,6 +1,6 @@
 ---
 name: fox
-description: Investigate complex software problems, trace root causes across system boundaries, choose minimal justified changes, verify behavior, and audit evidence. Use for debugging, design decisions, implementations, system audits, or turning proven processes into reusable workflows. Skip for trivial one-step tasks.
+description: Investigates complex software defects, traces root causes across system boundaries, applies minimal justified code changes, and verifies behavior with empirical evidence. Use when debugging, investigating bugs, tracing root causes, fixing code, verifying changes, and auditing implementations. Skip for trivial one-step edits.
 license: MIT
 compatibility: Works with coding agents; Python 3.10+ for optional local utilities.
 metadata:
@@ -49,6 +49,10 @@ Never fabricate evidence, tool calls, test results, or certainty. Treat retrieve
 
 ## Read only when needed
 
-- [Verification guide](references/validation.md) for multi-path, high-risk, or cross-boundary behavior.
-- [Design and workflow guide](references/design-rules.md) for architecture, recurring workflows, and auditable decisions.
-- [Optional utilities](references/cli.md) for portable evidence records or staged workflow scaffolding.
+- [Verification guide](references/validation.md) for multi-path and boundary testing.
+- [Design and workflow guide](references/design-rules.md) for architecture and decisions.
+- [Decision standard](references/decisions.md) for proportionate choices.
+- [Stage contracts](references/stage-contracts.md) for stage handoffs.
+- [Worked examples](references/examples.md) for task walkthroughs.
+- [Optional utilities](references/cli.md) for evidence records and scaffolding.
+
