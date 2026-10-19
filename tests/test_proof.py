@@ -176,6 +176,13 @@ class SkillTests(unittest.TestCase):
         self.assertEqual(dests_cursor[0], project.resolve() / ".cursor/skills/fox")
         self.assertTrue((dests_cursor[0] / "SKILL.md").is_file())
 
+    def test_installer_antigravity_target(self):
+        project = self.root / "project_agy"
+        project.mkdir()
+        dests = installer.install("antigravity", project)
+        self.assertEqual(dests[0], project.resolve() / ".agents/skills/fox")
+        self.assertTrue((dests[0] / "SKILL.md").is_file())
+
     def test_installer_validation_and_errors(self):
         project = self.root / "project3"
         project.mkdir()

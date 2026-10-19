@@ -3,8 +3,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-brightgreen.svg)]()
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero%20(stdlib)-success.svg)]()
-[![Platform: Codex | Claude | Cursor](https://img.shields.io/badge/Agents-Codex%20%7C%20Claude%20%7C%20Cursor-purple.svg)]()
-[![Tests: 33 Passed](https://img.shields.io/badge/Tests-33%20Passed-success.svg)]()
+[![Platform: Antigravity | Codex | Claude | Cursor](https://img.shields.io/badge/Agents-Antigravity%20%7C%20Codex%20%7C%20Claude%20%7C%20Cursor-purple.svg)]()
+[![Tests: 34 Passed](https://img.shields.io/badge/Tests-34%20Passed-success.svg)]()
 
 Fox is an open-source agent skill that guides AI coding assistants through disciplined software investigation, root cause diagnosis, minimal justified changes, and empirical verification. It teaches agents to trace execution paths across system boundaries, repair defects at the component that actually owns the behavior, and confirm results with reproducible evidence before marking tasks complete.
 
@@ -35,6 +35,7 @@ Fox installs directly into standard skill directories for leading coding environ
 
 | Coding Environment | Target Directory | Command |
 |---|---|---|
+| **Google Antigravity** | `~/.gemini/config/skills/fox` | `python3 install.py --agent antigravity --global` |
 | **OpenAI Codex** | `.agents/skills/fox` | `python3 install.py --agent codex --project /path/to/project` |
 | **Anthropic Claude Code** | `.claude/skills/fox` | `python3 install.py --agent claude --project /path/to/project` |
 | **Cursor** | `.cursor/skills/fox` | `python3 install.py --agent cursor --project /path/to/project` |
@@ -42,8 +43,11 @@ Fox installs directly into standard skill directories for leading coding environ
 ### Installation flags
 
 ```bash
-# Install to Codex workspace
-python3 install.py --agent codex --project /path/to/project
+# Install globally for Antigravity
+python3 install.py --agent antigravity --global
+
+# Install to Antigravity or Codex project workspace
+python3 install.py --agent antigravity --project /path/to/project
 
 # Install to Claude Code workspace
 python3 install.py --agent claude --project /path/to/project
@@ -52,10 +56,10 @@ python3 install.py --agent claude --project /path/to/project
 python3 install.py --agent cursor --project /path/to/project
 
 # Dry-run inspection (shows planned file copies without writing)
-python3 install.py --agent codex --project /path/to/project --dry-run
+python3 install.py --agent antigravity --global --dry-run
 
 # Replace existing installation
-python3 install.py --agent codex --project /path/to/project --force
+python3 install.py --agent antigravity --global --force
 ```
 
 ---

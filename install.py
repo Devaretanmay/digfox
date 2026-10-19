@@ -11,19 +11,33 @@ AGENTS = {
     "codex": ".agents/skills",
     "claude": ".claude/skills",
     "cursor": ".cursor/skills",
+    "antigravity": ".agents/skills",
 }
 ROOT = Path(__file__).resolve().parent
 
 
-def install(agent: str, project: Path, force: bool = False, dry_run: bool = False) -> list[Path]:
+def install(
+    agent: str,
+    project: Path,
+    force: bool = False,
+    dry_run: bool = False,
+    is_global: bool = False,
+) -> list[Path]:
     if agent not in AGENTS:
         raise ValueError(f"Unknown agent '{agent}'; choose from: {', '.join(AGENTS.keys())}")
-    project = project.expanduser().resolve()
-    if not project.is_dir():
-        raise ValueError(f"Project directory must exist: {project}")
+
+    if is_global:
+        if agent == "antigravity":
+            target_dir = Path.home() / ".gemini" / "config" / "skills"
+        else:
+            raise ValueError("--global is currently supported for antigravity")
+    else:
+        project = project.expanduser().resolve()
+        if not project.is_dir():
+            raise ValueError(f"Project directory must exist: {project}")
+        target_dir = project / AGENTS[agent]
 
     source = ROOT / "skills" / "fox"
-    target_dir = project / AGENTS[agent]
     dest = target_dir / "fox"
 
     if not (source / "SKILL.md").is_file():
@@ -76,13 +90,19 @@ def main(argv=None) -> int:
         "--agent",
         required=True,
         choices=AGENTS,
-        help="Target agent environment (codex, claude, cursor)",
+        help="Target agent environment (codex, claude, cursor, antigravity)",
     )
     p.add_argument(
         "--project",
         type=Path,
         default=Path.cwd(),
         help="Target project root directory (default: current directory)",
+    )
+    p.add_argument(
+        "--global",
+        dest="is_global",
+        action="store_true",
+        help="Install globally (~/.gemini/config/skills for antigravity)",
     )
     p.add_argument(
         "--force",
@@ -96,7 +116,7 @@ def main(argv=None) -> int:
     )
     args = p.parse_args(argv)
     try:
-        dests = install(args.agent, args.project, args.force, args.dry_run)
+        dests = install(args.agent, args.project, args.force, args.dry_run, args.is_global)
         if not args.dry_run:
             for dest in dests:
                 print("INSTALLED: " + str(dest))
