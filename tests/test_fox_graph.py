@@ -87,13 +87,22 @@ class FoxGraphInstallerTests(unittest.TestCase):
         self.assertTrue((dests[0] / "SKILL.md").is_file())
         self.assertTrue((dests[0] / "scripts" / "fox_graph.py").is_file())
 
-    def test_install_all_skills(self):
-        dests = install.install("claude", self.project, skill="all")
+    def test_install_both_skills_compatibility(self):
+        dests = install.install("claude", self.project, skill="both")
         self.assertEqual(len(dests), 2)
         names = {d.name for d in dests}
         self.assertEqual(names, {"fox", "fox-graph"})
         self.assertTrue((self.project / ".claude/skills/fox/SKILL.md").is_file())
         self.assertTrue((self.project / ".claude/skills/fox-graph/SKILL.md").is_file())
+
+    def test_install_all_skills(self):
+        dests = install.install("claude", self.project, skill="all")
+        self.assertEqual(len(dests), 3)
+        names = {d.name for d in dests}
+        self.assertEqual(names, {"fox", "fox-graph", "fox-explore"})
+        self.assertTrue((self.project / ".claude/skills/fox/SKILL.md").is_file())
+        self.assertTrue((self.project / ".claude/skills/fox-graph/SKILL.md").is_file())
+        self.assertTrue((self.project / ".claude/skills/fox-explore/SKILL.md").is_file())
 
 
 class PatchParserTests(unittest.TestCase):

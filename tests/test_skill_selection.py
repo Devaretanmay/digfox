@@ -43,8 +43,9 @@ class SkillIndependenceInstallationTests(unittest.TestCase):
             self.assertEqual(len(dests), 1)
             self.assertEqual(dests[0], proj.resolve() / rel_path)
             self.assertTrue((dests[0] / "SKILL.md").is_file())
-            # Fox alone: fox-graph must NOT be installed
+            # Fox alone: fox-graph and fox-explore must NOT be installed
             self.assertFalse((dests[0].parent / "fox-graph").exists())
+            self.assertFalse((dests[0].parent / "fox-explore").exists())
 
     def test_install_fox_graph_alone_across_all_agents(self):
         agents_dirs = {
@@ -60,20 +61,66 @@ class SkillIndependenceInstallationTests(unittest.TestCase):
             self.assertEqual(len(dests), 1)
             self.assertEqual(dests[0], proj.resolve() / rel_path)
             self.assertTrue((dests[0] / "SKILL.md").is_file())
-            # Fox Graph alone: fox must NOT be installed
+            # Fox Graph alone: fox and fox-explore must NOT be installed
             self.assertFalse((dests[0].parent / "fox").exists())
+            self.assertFalse((dests[0].parent / "fox-explore").exists())
 
-    def test_install_both_skills_across_all_agents(self):
+    def test_install_fox_explore_alone_across_all_agents(self):
+        agents_dirs = {
+            "antigravity": ".agents/skills/fox-explore",
+            "codex": ".agents/skills/fox-explore",
+            "claude": ".claude/skills/fox-explore",
+            "cursor": ".cursor/skills/fox-explore",
+        }
+        for agent, rel_path in agents_dirs.items():
+            proj = self.project / f"proj_explore_{agent}"
+            proj.mkdir(parents=True)
+            dests = install.install(agent, proj, skill="fox-explore")
+            self.assertEqual(len(dests), 1)
+            self.assertEqual(dests[0], proj.resolve() / rel_path)
+            self.assertTrue((dests[0] / "SKILL.md").is_file())
+            # Fox Explore alone: fox and fox-graph must NOT be installed
+            self.assertFalse((dests[0].parent / "fox").exists())
+            self.assertFalse((dests[0].parent / "fox-graph").exists())
+
+    def test_install_both_skills_compatibility_across_all_agents(self):
         for agent in ["antigravity", "codex", "claude", "cursor"]:
             proj = self.project / f"proj_both_{agent}"
             proj.mkdir(parents=True)
-            dests = install.install(agent, proj, skill="all")
+            dests = install.install(agent, proj, skill="both")
             self.assertEqual(len(dests), 2)
             names = {d.name for d in dests}
             self.assertEqual(names, {"fox", "fox-graph"})
             target_skills_dir = dests[0].parent
             self.assertTrue((target_skills_dir / "fox" / "SKILL.md").is_file())
             self.assertTrue((target_skills_dir / "fox-graph" / "SKILL.md").is_file())
+            self.assertFalse((target_skills_dir / "fox-explore").exists())
+
+    def test_install_all_three_skills_across_all_agents(self):
+        for agent in ["antigravity", "codex", "claude", "cursor"]:
+            proj = self.project / f"proj_all_{agent}"
+            proj.mkdir(parents=True)
+            dests = install.install(agent, proj, skill="all")
+            self.assertEqual(len(dests), 3)
+            names = {d.name for d in dests}
+            self.assertEqual(names, {"fox", "fox-graph", "fox-explore"})
+            target_skills_dir = dests[0].parent
+            self.assertTrue((target_skills_dir / "fox" / "SKILL.md").is_file())
+            self.assertTrue((target_skills_dir / "fox-graph" / "SKILL.md").is_file())
+            self.assertTrue((target_skills_dir / "fox-explore" / "SKILL.md").is_file())
+
+    def test_install_skill_combinations_across_all_agents(self):
+        for agent in ["antigravity", "claude"]:
+            proj = self.project / f"proj_comb_{agent}"
+            proj.mkdir(parents=True)
+            dests = install.install(agent, proj, skill="fox,fox-explore")
+            self.assertEqual(len(dests), 2)
+            names = {d.name for d in dests}
+            self.assertEqual(names, {"fox", "fox-explore"})
+            target_skills_dir = dests[0].parent
+            self.assertTrue((target_skills_dir / "fox" / "SKILL.md").is_file())
+            self.assertTrue((target_skills_dir / "fox-explore" / "SKILL.md").is_file())
+            self.assertFalse((target_skills_dir / "fox-graph").exists())
 
 
 class SkillIndependentExecutionTests(unittest.TestCase):
@@ -120,6 +167,7 @@ class SkillIndependentExecutionTests(unittest.TestCase):
         dests = install.install("claude", workspace, skill="fox-graph")
         graph_dir = dests[0]
         self.assertFalse((graph_dir.parent / "fox").exists())
+        self.assertFalse((graph_dir.parent / "fox-explore").exists())
 
         cli_py = graph_dir / "scripts" / "fox_graph.py"
         self.assertTrue(cli_py.is_file())
@@ -146,9 +194,26 @@ class SkillIndependentExecutionTests(unittest.TestCase):
         self.assertIn("changed_symbols", data)
         self.assertIn("coverage_gaps", data)
 
+    def test_fox_explore_execution_in_isolation(self):
+        """Fox Explore operates cleanly as a read-only skill in isolation."""
+        workspace = self.base / "explore_only_ws"
+        workspace.mkdir()
+        dests = install.install("claude", workspace, skill="fox-explore")
+        explore_dir = dests[0]
+        self.assertFalse((explore_dir.parent / "fox").exists())
+        self.assertFalse((explore_dir.parent / "fox-graph").exists())
+
+        skill_md = explore_dir / "SKILL.md"
+        self.assertTrue(skill_md.is_file())
+        content = skill_md.read_text(encoding="utf-8")
+        self.assertIn("name: fox-explore", content)
+        self.assertTrue((explore_dir / "references" / "research-playbook.md").is_file())
+        # Fox Explore must NOT introduce external python scripts, databases, or indexing engines
+        self.assertFalse((explore_dir / "scripts").exists())
+
 
 class CombinedInteroperabilityTests(unittest.TestCase):
-    """Verify that both skills operate together cleanly in a shared workspace."""
+    """Verify that all three skills operate together cleanly in a shared workspace."""
 
     def setUp(self):
         self.tmp = tempfile.mkdtemp(prefix="test-combined-")
@@ -159,12 +224,14 @@ class CombinedInteroperabilityTests(unittest.TestCase):
 
     def test_combined_installation_and_workflow(self):
         dests = install.install("antigravity", self.workspace, skill="all")
-        self.assertEqual(len(dests), 2)
+        self.assertEqual(len(dests), 3)
         fox_dir = next(d for d in dests if d.name == "fox")
         graph_dir = next(d for d in dests if d.name == "fox-graph")
+        explore_dir = next(d for d in dests if d.name == "fox-explore")
 
         self.assertTrue((fox_dir / "SKILL.md").is_file())
         self.assertTrue((graph_dir / "SKILL.md").is_file())
+        self.assertTrue((explore_dir / "SKILL.md").is_file())
 
         # Simulate combined workflow:
         # 1. Fox Graph identifies a coverage gap in an alternate entry point
@@ -238,11 +305,33 @@ class SkillSelectionBenchmarkTests(unittest.TestCase):
         {"query": "Identify cross-module dependencies and public entry points reaching the modified parser", "expected": {"fox-graph"}},
         {"query": "Select targeted regression tests for changed database migration functions across modules", "expected": {"fox-graph"}},
 
-        # Positive: Both (Combined investigation + graph-backed impact/bypass verification)
+        # Positive: Fox Explore only (Codebase understanding, technical research, architecture & recommendations)
+        {"query": "Explain this repository to someone seeing it for the first time.", "expected": {"fox-explore"}},
+        {"query": "Walk me through what happens when this API receives a request.", "expected": {"fox-explore"}},
+        {"query": "Why did this project choose SQLite instead of PostgreSQL?", "expected": {"fox-explore"}},
+        {"query": "Compare our architecture with PostHog.", "expected": {"fox-explore"}},
+        {"query": "Research three open-source alternatives to our current approach.", "expected": {"fox-explore"}},
+        {"query": "Find useful features from another GitHub repository we could adopt.", "expected": {"fox-explore"}},
+        {"query": "Is our architecture suitable for a larger workload?", "expected": {"fox-explore"}},
+        {"query": "Could this repository become a commercial product?", "expected": {"fox-explore"}},
+        {"query": "Explain this unfamiliar function and its surrounding design.", "expected": {"fox-explore"}},
+        {"query": "What would you improve, and what would you leave alone?", "expected": {"fox-explore"}},
+
+        # Positive: Combinations (Fox + Fox Graph)
         {"query": "Investigate defect in shared URL parser, patch the owning layer, and verify with blast radius analysis across all public client entry points", "expected": {"fox", "fox-graph"}},
         {"query": "Debug breaking change in core query builder, fix the issue, and analyze upstream callers across all microservice handlers", "expected": {"fox", "fox-graph"}},
         {"query": "Trace root cause of memory leak in image processor, apply minimal complete fix, and run impact analysis to detect unverified bypass routes", "expected": {"fox", "fox-graph"}},
         {"query": "Audit security vulnerability in credential handler, implement surgical fix, and inspect dependency graph for unpatched callers", "expected": {"fox", "fox-graph"}},
+
+        # Positive: Combinations (Fox + Fox Explore)
+        {"query": "Research architectural options for our token cache, then fix the race condition bug in token_store.py and verify it", "expected": {"fox", "fox-explore"}},
+        {"query": "Explain why this unfamiliar payment service fails intermittently, find the root cause, and verify a focused repair", "expected": {"fox", "fox-explore"}},
+
+        # Positive: Combinations (Fox Graph + Fox Explore)
+        {"query": "Explain our microservice architecture compared to industry standards and analyze the blast radius of this proposed PR diff", "expected": {"fox-graph", "fox-explore"}},
+
+        # Positive: All three skills (Fox + Fox Graph + Fox Explore)
+        {"query": "Explore architectural alternatives for the data pipeline, analyze the blast radius across dependent modules, and fix the memory leak with verification", "expected": {"fox", "fox-graph", "fox-explore"}},
 
         # Negative: Neither (Unrelated tasks or trivial edits)
         {"query": "Write a poem about a rainy autumn afternoon in the woods", "expected": set()},
@@ -260,13 +349,25 @@ class SkillSelectionBenchmarkTests(unittest.TestCase):
         fox_triggers = [
             "investigate", "investigating", "debug", "debugging", "trace root cause",
             "root cause", "fix bug", "fixing code", "repair the owning layer",
-            "minimal complete fix", "audit security vulnerability"
+            "minimal complete fix", "audit security vulnerability", "fix the race condition",
+            "fix the memory leak", "focused repair"
         ]
         # Fox Graph triggers: call graph, blast radius, patch impact, alternate execution paths, dependency graph, upstream callers, regression tests
         graph_triggers = [
             "call graph", "blast radius", "proposed git diff", "pr #", "unpatched alternate",
             "alternate execution paths", "cross-module dependencies", "public entry points",
-            "regression tests", "impact analysis", "dependency graph", "upstream callers"
+            "regression tests", "impact analysis", "dependency graph", "upstream callers",
+            "proposed pr diff"
+        ]
+        # Fox Explore triggers: explain repository, walk me through, why did this project choose, compare our architecture,
+        # research alternatives, find useful features from another github repository, suitable for a larger workload,
+        # commercial product, explain this unfamiliar function, what would you improve, explore architectural
+        explore_triggers = [
+            "explain this repository", "walk me through", "why did this project choose",
+            "compare our architecture", "research three open-source", "research architectural",
+            "find useful features", "suitable for a larger workload", "commercial product",
+            "explain this unfamiliar", "what would you improve", "explore architectural",
+            "explain our microservice architecture", "unfamiliar"
         ]
         # Negative triggers: trivial edits or non-code tasks
         negative_triggers = ["poem", "explain the conceptual", "spelling error", "format json"]
@@ -279,6 +380,9 @@ class SkillSelectionBenchmarkTests(unittest.TestCase):
 
         if any(trig in q_lower for trig in graph_triggers):
             selected.add("fox-graph")
+
+        if any(trig in q_lower for trig in explore_triggers):
+            selected.add("fox-explore")
 
         return selected
 

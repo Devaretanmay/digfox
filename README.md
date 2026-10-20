@@ -1,22 +1,25 @@
 # Fox
 
-**Better fixes. Less guesswork.**
+**Better fixes. Less guesswork. Clear exploration.**
 
-Fox helps AI coding agents find the root cause, make focused changes, and verify the result. Fox Graph helps them understand how changes affect the rest of a codebase.
+Fox is a suite of three independent Agent Skills for AI coding assistants (Google Antigravity, Claude Code, Cursor, and OpenAI Codex):
+
+- **Fox**: Fix what's broken (root-cause debugging and verified repairs).
+- **Fox Graph**: Know what else might break (dependency graphs and patch blast radius).
+- **Fox Explore**: Understand your code. Explore what's possible (architecture, research, and recommendations).
+
+Each skill works completely on its own with zero dependencies on the others. You can install one, any combination, or all three.
 
 ---
 
 ## Choose Your Skill
 
-Fox and Fox Graph are two standalone skills you install into your AI coding tool (Google Antigravity, Claude Code, Cursor, or OpenAI Codex). You can install either skill alone or both together.
-
 | Skill | What It Does | When to Choose It |
 | :--- | :--- | :--- |
 | **Fox** | **Fix what's broken.**<br>Investigates bugs, identifies root causes, applies focused repairs, and verifies results. | You have a bug to fix, an unexpected test failure, or code to debug. |
-| **Fox Graph** | **Know what else might break.**<br>Maps code relationships, identifies potentially affected paths, and helps select useful regression checks. | You are reviewing a pull request or checking how an edit impacts other files. |
-| **Both** | **Fix the bug. Check the impact.**<br>Two independently installed skills that can be used together on complex tasks. | You are changing a shared core function or data structure used across multiple modules. |
-
-*You do not need a third combined skill. Installing both skills allows your coding agent to use whichever capability your task needs.*
+| **Fox Graph** | **Know what else might break.**<br>Maps code relationships, identifies potentially affected paths, and selects targeted regression checks. | You are reviewing a pull request or checking how an edit impacts other files. |
+| **Fox Explore** | **Understand your code. Explore what's possible.**<br>Explains unfamiliar code, researches external open-source alternatives, compares architectures, and advises on trade-offs. | You are onboarding to a repository, evaluating an architectural choice, or researching technical options. |
+| **Combinations** | **Mix and match freely.**<br>Install any combination. Skills cooperate smoothly without cross-dependencies. | You want to explore architectural options (`fox-explore`), check blast radius (`fox-graph`), and fix defects (`fox`). |
 
 ---
 
@@ -27,7 +30,7 @@ Fox and Fox Graph are two standalone skills you install into your AI coding tool
 Run the installer inside your project directory. It requires only standard Python (version 3.10 or newer) with zero external dependencies.
 
 #### Interactive Setup (Recommended)
-Run the installer in your terminal to select your coding agent and skills:
+Run the wizard in your terminal to select your coding agent and skills:
 ```bash
 python3 install.py
 ```
@@ -46,13 +49,23 @@ python3 install.py --agent claude --skill all
 python3 install.py --agent cursor --skill all
 ```
 
-To install only Fox, pass `--skill fox`. To install only Fox Graph, pass `--skill fox-graph`.
+#### Install Specific Skills or Combinations
+```bash
+# Install only Fox Explore
+python3 install.py --agent claude --skill fox-explore
+
+# Install only Fox
+python3 install.py --agent cursor --skill fox
+
+# Install a custom combination (Fox + Fox Explore)
+python3 install.py --agent antigravity --skill fox,fox-explore
+```
 
 ---
 
 ## Your First Task
 
-Once installed, start a new chat in your AI coding agent and try one of these prompts:
+Once installed, start a new chat in your AI coding agent and try one of these beginner-friendly examples:
 
 ### If You Installed Fox
 > "Investigate why this function returns the wrong result. Find the cause, fix it, and verify the change."
@@ -60,15 +73,19 @@ Once installed, start a new chat in your AI coding agent and try one of these pr
 ### If You Installed Fox Graph
 > "Analyze this change and show which other parts of the codebase might be affected."
 
-### If You Installed Both
-> "Investigate this bug, check its impact across the codebase, implement a focused fix, and verify the relevant paths."
+### If You Installed Fox Explore
+> "Explain this repository to someone seeing it for the first time. Walk me through the request flow and explain what you would improve and what you would leave alone."
+
+### If You Installed All Three
+> "Explore architectural alternatives for our caching layer, check the blast radius across dependent handlers, and implement the verified change."
 
 ### How to Confirm It Loaded
-- **Fox**: Your agent will first write a reproduction test to confirm the failure, trace the issue to the owning component, make a minimal fix, and run verification tests.
-- **Fox Graph**: Your agent will map changed symbols, show caller hierarchies, and list regression tests to run.
+- **Fox**: Your agent writes a reproduction test first, traces execution to the owning component, applies a minimal fix, and runs verification checks.
+- **Fox Graph**: Your agent maps changed symbols from the Git diff, displays caller hierarchies, and highlights untested public paths.
+- **Fox Explore**: Your agent answers directly, grounds local explanations in real repository paths, separates facts from inferences, and provides practical recommendations.
 
-If your agent does not recognize the skill, restart the chat session or tell the agent:
-`Use instructions in .agents/skills/fox/SKILL.md`. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more details.
+If your agent does not recognize a skill, restart the chat session or tell the agent:
+`Use instructions in .agents/skills/fox-explore/SKILL.md`. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more tips.
 
 ---
 
@@ -83,9 +100,9 @@ header = wa.to_header()
 ```
 
 - **The bug**: `to_header()` returns `'Bearer '` with an illegal trailing space. Downstream HTTP parsers reject the request.
-- **Without Fox**: An agent might patch the immediate caller or strip trailing spaces inside a wrapper. Sibling entry points (such as response headers and exception handlers) remain broken.
-- **With Fox**: The agent traces execution to the owning serializer (`auth.py`), fixes the formatting at the source, and ensures that `from_header("Bearer") == WWWAuthenticate("bearer")` holds true in both directions.
+- **With Fox**: The agent traces execution to the owning serializer (`auth.py`), fixes formatting at the source, and ensures that `from_header("Bearer") == WWWAuthenticate("bearer")` holds true in both directions.
 - **With Fox Graph**: The agent inspects the blast radius across the repository, flagging that `Response.www_authenticate` and `Unauthorized.get_headers()` also call this code and require test coverage.
+- **With Fox Explore**: The agent explains the header specification RFC, compares the framework's token validation with standard libraries (such as `PyJWT` or `authlib`), and advises on backward compatibility trade-offs before changes are made.
 
 For step-by-step walkthroughs of real defects and pull request audits, see the [Adoption Guide](examples/ADOPTION_GUIDE.md).
 
@@ -97,6 +114,7 @@ For step-by-step walkthroughs of real defects and pull request audits, see the [
 - **Root cause**: The underlying reason something went wrong, rather than just the symptom you noticed.
 - **Blast radius**: The other parts of a project potentially affected when code changes.
 - **Regression**: Something that worked before but breaks after an edit.
+- **Grounding**: Proving claims using concrete repository files or primary documentation instead of guessing.
 
 ### Fox Lifecycle
 Fox guides your agent through four simple steps:
@@ -112,12 +130,19 @@ Fox Graph provides deterministic dependency analysis without requiring a server:
 3. **Detect coverage gaps**: Flags reachable code paths that lack tests in the proposed change.
 4. **Suggest verification**: Generates a prioritized list of tests to run before merging.
 
+### Fox Explore Lifecycle
+Fox Explore provides read-only codebase understanding and technical research:
+1. **Understand the question**: Clarify scope and match investigation depth to the question.
+2. **Investigate the evidence**: Inspect repository files, tests, configs, and verified external sources.
+3. **Connect and evaluate**: Relate implementation details to documented practices, separating facts from inference.
+4. **Explain and recommend**: Answer directly, cite exact paths, evaluate trade-offs, and suggest next steps.
+
 ---
 
 ## Advanced Setup
 
 ### Global Installation (Antigravity)
-To make Fox available across all projects on your machine for Google Antigravity:
+To make skills available across all projects on your machine for Google Antigravity:
 ```bash
 python3 install.py --agent antigravity --skill all --global
 ```
@@ -158,6 +183,7 @@ python3 skills/fox/scripts/proof.py report cases/auth
 ## Troubleshooting & Limitations
 
 - **Skill guidance, not hard constraints**: Skills provide structured reasoning instructions for AI agents. They improve agent consistency, but cannot intercept models that ignore instructions.
+- **Read-only exploration**: Fox Explore is read-only by default and will not modify repository files or scaffold architectures unless explicitly requested.
 - **Static code graphs**: Fox Graph uses static code analysis. Dynamic calls (such as runtime `getattr` or dependency injection) cannot be traced statically and are reported as limitations.
 - **Multi-language projects**: Fox Graph defaults to Python AST with zero external dependencies. For TypeScript, JavaScript, Go, or Rust, Fox Graph can optionally use GitNexus if Node.js (`npx`) is available.
 

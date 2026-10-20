@@ -16,7 +16,7 @@ AGENTS = {
 }
 ROOT = Path(__file__).resolve().parent
 
-AVAILABLE_SKILLS = ["fox", "fox-graph"]
+AVAILABLE_SKILLS = ["fox", "fox-graph", "fox-explore"]
 
 
 def _install_single(
@@ -77,7 +77,7 @@ def install(
     force: bool = False,
     dry_run: bool = False,
     is_global: bool = False,
-    skill: str = "fox",
+    skill: str | list[str] = "fox",
 ) -> list[Path]:
     if agent not in AGENTS:
         raise ValueError(f"Unknown agent '{agent}'; choose from: {', '.join(AGENTS.keys())}")
@@ -93,10 +93,35 @@ def install(
             raise ValueError(f"Project directory must exist: {project}")
         target_dir = project / AGENTS[agent]
 
-    if skill == "all":
-        skills_to_install = AVAILABLE_SKILLS
-    elif skill in AVAILABLE_SKILLS:
-        skills_to_install = [skill]
+    if isinstance(skill, str):
+        if skill == "all":
+            skills_to_install = list(AVAILABLE_SKILLS)
+        elif skill == "both":
+            skills_to_install = ["fox", "fox-graph"]
+        elif "," in skill:
+            parts = [s.strip() for s in skill.split(",") if s.strip()]
+            for s in parts:
+                if s not in AVAILABLE_SKILLS:
+                    raise ValueError(
+                        f"Unknown skill '{s}'; choose from: {', '.join(AVAILABLE_SKILLS)}, all"
+                    )
+            # Deduplicate while preserving order
+            skills_to_install = list(dict.fromkeys(parts))
+        elif skill in AVAILABLE_SKILLS:
+            skills_to_install = [skill]
+        else:
+            raise ValueError(
+                f"Unknown skill '{skill}'; choose from: {', '.join(AVAILABLE_SKILLS)}, all"
+            )
+    elif isinstance(skill, (list, tuple, set)):
+        skills_to_install = []
+        for s in skill:
+            if s not in AVAILABLE_SKILLS:
+                raise ValueError(
+                    f"Unknown skill '{s}'; choose from: {', '.join(AVAILABLE_SKILLS)}, all"
+                )
+            if s not in skills_to_install:
+                skills_to_install.append(s)
     else:
         raise ValueError(
             f"Unknown skill '{skill}'; choose from: {', '.join(AVAILABLE_SKILLS)}, all"
@@ -110,7 +135,7 @@ def install(
 
 def print_success_guidance(dests: list[Path], agent: str, skill: str) -> None:
     print("\n" + "=" * 62)
-    print("Fox & Fox Graph Installation Guidance")
+    print("Fox Agent Skills Installation Guidance")
     print("=" * 62)
     for dest in dests:
         print(f"Installed: {dest}")
@@ -129,14 +154,17 @@ def print_success_guidance(dests: list[Path], agent: str, skill: str) -> None:
         print('  "Investigate why this function returns the wrong result. Find the cause, fix it, and verify the change."')
     elif skill == "fox-graph":
         print('  "Analyze this change and show which other parts of the codebase might be affected."')
+    elif skill == "fox-explore":
+        print('  "Explain this repository architecture, trace the request lifecycle, and compare our design with standard practices."')
     else:
-        print('  Fox:       "Investigate why this function returns the wrong result. Find the cause, fix it, and verify the change."')
-        print('  Fox Graph: "Analyze this change and show which other parts of the codebase might be affected."')
-        print('  Both:      "Investigate this bug, check its impact across the codebase, implement a focused fix, and verify the relevant paths."')
+        print('  Fox:         "Investigate why this function returns the wrong result. Find the cause, fix it, and verify the change."')
+        print('  Fox Graph:   "Analyze this change and show which other parts of the codebase might be affected."')
+        print('  Fox Explore: "Explain this repository architecture, trace the request flow, and advise on scaling limits."')
+        print('  Combined:    "Explore architectural options, check the impact of the proposed change, and implement the verified fix."')
 
     print("\nHow to verify it loaded:")
-    print("  Look for Fox's 4-step workflow (Ground, Trace, Decide and Change, Verify)")
-    print("  or Fox Graph's blast-radius summary in the agent's response.")
+    print("  Look for Fox's 4-step workflow (Ground, Trace, Decide and Change, Verify),")
+    print("  Fox Graph's blast-radius summary, or Fox Explore's 4-stage exploration.")
 
     print("\nIf the agent does not recognize the skill:")
     print("  1. Restart your coding agent session to refresh installed skills.")
@@ -146,8 +174,8 @@ def print_success_guidance(dests: list[Path], agent: str, skill: str) -> None:
 
 
 def run_interactive_wizard() -> int:
-    print("\nWelcome to Fox & Fox Graph Setup")
-    print("Better fixes. Less guesswork.\n")
+    print("\nWelcome to Fox Setup")
+    print("Better fixes. Less guesswork. Clear exploration.\n")
 
     # Step 1: Agent selection
     print("1. Which AI coding agent do you use?")
@@ -180,25 +208,42 @@ def run_interactive_wizard() -> int:
     skill_options = [
         ("fox", "Fox: Fix what's broken (root-cause debugging and verified repair)"),
         ("fox-graph", "Fox Graph: Know what else might break (relationships and impact analysis)"),
-        ("all", "Both: Fix the bug. Check the impact (recommended for complete setup)"),
+        ("fox-explore", "Fox Explore: Understand your code. Explore what's possible (architecture & research)"),
+        ("all", "All three skills: Complete engineering suite (recommended)"),
     ]
     for idx, (_, label) in enumerate(skill_options, 1):
         print(f"   [{idx}] {label}")
+    print("   Or enter a comma-separated combination (e.g. 1,3 or fox,fox-explore)")
 
     skill_choice = None
     while skill_choice is None:
         try:
-            raw = input("   Select an option [1-3] (default: 3): ").strip()
+            raw = input("   Select an option [1-4] (default: 4): ").strip()
         except (EOFError, KeyboardInterrupt):
             print("\nSetup cancelled.")
             return 1
         if not raw:
-            skill_choice = skill_options[2][0]
+            skill_choice = skill_options[3][0]
             break
         if raw.isdigit() and 1 <= int(raw) <= len(skill_options):
             skill_choice = skill_options[int(raw) - 1][0]
             break
-        print("   Please enter 1, 2, or 3.")
+        if "," in raw:
+            parts = [p.strip() for p in raw.split(",") if p.strip()]
+            resolved = []
+            valid = True
+            for p in parts:
+                if p.isdigit() and 1 <= int(p) <= 3:
+                    resolved.append(skill_options[int(p) - 1][0])
+                elif p in AVAILABLE_SKILLS:
+                    resolved.append(p)
+                else:
+                    valid = False
+                    break
+            if valid and resolved:
+                skill_choice = ",".join(resolved)
+                break
+        print("   Please enter 1, 2, 3, 4, or a combination like 1,3.")
 
     # Step 3: Location (Project vs Global)
     is_global = False
@@ -234,7 +279,13 @@ def run_interactive_wizard() -> int:
     else:
         target_dir = project_path / AGENTS[agent_choice]
 
-    skills_to_check = AVAILABLE_SKILLS if skill_choice == "all" else [skill_choice]
+    if skill_choice == "all":
+        skills_to_check = list(AVAILABLE_SKILLS)
+    elif "," in skill_choice:
+        skills_to_check = [s.strip() for s in skill_choice.split(",") if s.strip()]
+    else:
+        skills_to_check = [skill_choice]
+
     existing = [s for s in skills_to_check if (target_dir / s).exists()]
 
     force = False
@@ -282,9 +333,8 @@ def main(argv=None) -> int:
     )
     p.add_argument(
         "--skill",
-        choices=["fox", "fox-graph", "all"],
         default="fox",
-        help="Skill to install: fox, fox-graph, all (default: fox)",
+        help="Skill to install: fox, fox-graph, fox-explore, all, or comma-separated (default: fox)",
     )
     p.add_argument(
         "--project",
