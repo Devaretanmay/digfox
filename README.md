@@ -46,6 +46,18 @@ Neither skill requires the other to be installed.
 
 ---
 
+## Adoption Guide & Concrete Examples
+
+For a detailed adoption guide with step-by-step walkthroughs, prompt recipes, and expected outputs, see [examples/ADOPTION_GUIDE.md](examples/ADOPTION_GUIDE.md).
+
+| Guide / Walkthrough | When to Use | Key Advantage |
+| :--- | :--- | :--- |
+| **[Example 1: Localized Defect](examples/1-fox-alone-localized-defect/README.md)** | Single-site logic bugs, regex errors, off-by-one errors | **Fox alone**: Zero graph overhead; enforces reproducer-first fix and counterexample testing. |
+| **[Example 2: Diff & PR Audit](examples/2-fox-graph-alone-diff-audit/README.md)** | Code reviews, PR blast-radius checks, test gap audits | **Fox Graph alone**: Non-destructive; parses diffs and generates prioritized regression targets. |
+| **[Example 3: Cross-Module Repair](examples/3-combined-cross-module-repair/README.md)** | Core data structures, shared parsers, public entry points | **Both skills**: Fox drives root-cause repair while Fox Graph ensures all entry points are covered. |
+
+---
+
 ## Installation
 
 Install Fox alone, Fox Graph alone, or both skills together using `install.py`:
