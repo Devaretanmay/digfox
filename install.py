@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import shutil
+import sys
 import tempfile
 from pathlib import Path
 
@@ -14,7 +15,6 @@ AGENTS = {
     "antigravity": ".agents/skills",
 }
 ROOT = Path(__file__).resolve().parent
-
 
 AVAILABLE_SKILLS = ["fox", "fox-graph"]
 
@@ -108,12 +108,176 @@ def install(
     return results
 
 
+def print_success_guidance(dests: list[Path], agent: str, skill: str) -> None:
+    print("\n" + "=" * 62)
+    print("Fox & Fox Graph Installation Guidance")
+    print("=" * 62)
+    for dest in dests:
+        print(f"Installed: {dest}")
+
+    print("\nHow to invoke:")
+    if agent in ("claude", "antigravity"):
+        slash_cmds = " ".join(f"/{d.name}" for d in dests)
+        print(f"  Slash command: {slash_cmds}")
+        print("  Or paste a task prompt into your agent chat.")
+    else:
+        print("  Paste your task prompt into your agent chat.")
+        print(f"  Your coding agent will read {dests[0].parent} automatically.")
+
+    print("\nCopy-paste example prompts to get started:")
+    if skill == "fox":
+        print('  "Investigate why this function returns the wrong result. Find the cause, fix it, and verify the change."')
+    elif skill == "fox-graph":
+        print('  "Analyze this change and show which other parts of the codebase might be affected."')
+    else:
+        print('  Fox:       "Investigate why this function returns the wrong result. Find the cause, fix it, and verify the change."')
+        print('  Fox Graph: "Analyze this change and show which other parts of the codebase might be affected."')
+        print('  Both:      "Investigate this bug, check its impact across the codebase, implement a focused fix, and verify the relevant paths."')
+
+    print("\nHow to verify it loaded:")
+    print("  Look for Fox's 4-step workflow (Ground, Trace, Decide and Change, Verify)")
+    print("  or Fox Graph's blast-radius summary in the agent's response.")
+
+    print("\nIf the agent does not recognize the skill:")
+    print("  1. Restart your coding agent session to refresh installed skills.")
+    print(f"  2. Confirm the skill folder exists at: {dests[0]}")
+    print(f'  3. Explicitly tell the agent: "Use the instructions in {dests[0]}/SKILL.md"')
+    print("=" * 62 + "\n")
+
+
+def run_interactive_wizard() -> int:
+    print("\nWelcome to Fox & Fox Graph Setup")
+    print("Better fixes. Less guesswork.\n")
+
+    # Step 1: Agent selection
+    print("1. Which AI coding agent do you use?")
+    agent_options = [
+        ("antigravity", "Google Antigravity (.agents/skills)"),
+        ("claude", "Anthropic Claude Code (.claude/skills)"),
+        ("cursor", "Cursor (.cursor/skills)"),
+        ("codex", "OpenAI Codex (.agents/skills)"),
+    ]
+    for idx, (_, label) in enumerate(agent_options, 1):
+        print(f"   [{idx}] {label}")
+
+    agent_choice = None
+    while agent_choice is None:
+        try:
+            raw = input("   Select an option [1-4] (default: 1): ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nSetup cancelled.")
+            return 1
+        if not raw:
+            agent_choice = agent_options[0][0]
+            break
+        if raw.isdigit() and 1 <= int(raw) <= len(agent_options):
+            agent_choice = agent_options[int(raw) - 1][0]
+            break
+        print("   Please enter a number between 1 and 4.")
+
+    # Step 2: Skill selection
+    print("\n2. Which skill would you like to install?")
+    skill_options = [
+        ("fox", "Fox: Fix what's broken (root-cause debugging and verified repair)"),
+        ("fox-graph", "Fox Graph: Know what else might break (relationships and impact analysis)"),
+        ("all", "Both: Fix the bug. Check the impact (recommended for complete setup)"),
+    ]
+    for idx, (_, label) in enumerate(skill_options, 1):
+        print(f"   [{idx}] {label}")
+
+    skill_choice = None
+    while skill_choice is None:
+        try:
+            raw = input("   Select an option [1-3] (default: 3): ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nSetup cancelled.")
+            return 1
+        if not raw:
+            skill_choice = skill_options[2][0]
+            break
+        if raw.isdigit() and 1 <= int(raw) <= len(skill_options):
+            skill_choice = skill_options[int(raw) - 1][0]
+            break
+        print("   Please enter 1, 2, or 3.")
+
+    # Step 3: Location (Project vs Global)
+    is_global = False
+    project_path = Path.cwd()
+
+    if agent_choice == "antigravity":
+        print("\n3. Installation scope:")
+        print("   [1] Project workspace (current directory)")
+        print("   [2] Global configuration (~/.gemini/config/skills)")
+        try:
+            scope_raw = input("   Select scope [1-2] (default: 1): ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nSetup cancelled.")
+            return 1
+        if scope_raw == "2":
+            is_global = True
+
+    if not is_global:
+        try:
+            proj_raw = input(f"\n3. Target project directory (default: {project_path}): ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nSetup cancelled.")
+            return 1
+        if proj_raw:
+            project_path = Path(proj_raw).expanduser().resolve()
+            if not project_path.is_dir():
+                print(f"Error: Directory '{project_path}' does not exist.")
+                return 2
+
+    # Step 4: Show destination and check existence
+    if is_global:
+        target_dir = Path.home() / ".gemini" / "config" / "skills"
+    else:
+        target_dir = project_path / AGENTS[agent_choice]
+
+    skills_to_check = AVAILABLE_SKILLS if skill_choice == "all" else [skill_choice]
+    existing = [s for s in skills_to_check if (target_dir / s).exists()]
+
+    force = False
+    if existing:
+        print(f"\nNotice: The following skill(s) already exist in {target_dir}:")
+        for s in existing:
+            print(f"  - {s}")
+        try:
+            replace_raw = input("Replace existing installation? [y/N]: ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            print("\nSetup cancelled.")
+            return 1
+        if replace_raw in ("y", "yes"):
+            force = True
+        else:
+            print("Installation cancelled. Existing files were preserved.")
+            return 0
+
+    print(f"\nInstalling to: {target_dir}")
+    try:
+        dests = install(
+            agent=agent_choice,
+            project=project_path,
+            force=force,
+            dry_run=False,
+            is_global=is_global,
+            skill=skill_choice,
+        )
+        for dest in dests:
+            print(f"INSTALLED: {dest}")
+        print_success_guidance(dests, agent_choice, skill_choice)
+        return 0
+    except Exception as ex:
+        print(f"ERROR: {ex}", file=sys.stderr)
+        return 2
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument(
         "--agent",
-        required=True,
         choices=AGENTS,
+        default=None,
         help="Target agent environment (codex, claude, cursor, antigravity)",
     )
     p.add_argument(
@@ -144,7 +308,25 @@ def main(argv=None) -> int:
         action="store_true",
         help="Show planned installation without modifying files",
     )
+    p.add_argument(
+        "-i",
+        "--interactive",
+        action="store_true",
+        help="Run interactive setup wizard",
+    )
+
     args = p.parse_args(argv)
+
+    # Check for interactive trigger
+    is_interactive_terminal = sys.stdin.isatty() and sys.stdout.isatty()
+    should_run_interactive = args.interactive or (args.agent is None and is_interactive_terminal)
+
+    if should_run_interactive:
+        return run_interactive_wizard()
+
+    if args.agent is None:
+        p.error("the following arguments are required: --agent (or run interactively in a terminal)")
+
     try:
         dests = install(
             args.agent,
@@ -159,9 +341,10 @@ def main(argv=None) -> int:
                 print("INSTALLED: " + str(dest))
             invocations = " ".join(f"/{d.name}" for d in dests)
             print(f"Invoke: {invocations}")
+            print_success_guidance(dests, args.agent, args.skill)
         return 0
     except (ValueError, FileExistsError, OSError) as ex:
-        print("ERROR: " + str(ex), file=__import__("sys").stderr)
+        print("ERROR: " + str(ex), file=sys.stderr)
         return 2
 
 

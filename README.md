@@ -1,163 +1,173 @@
-# Fox & Fox Graph
+# Fox
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-brightgreen.svg)]()
-[![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero%20(stdlib)-success.svg)]()
-[![Platform: Antigravity | Codex | Claude | Cursor](https://img.shields.io/badge/Agents-Antigravity%20%7C%20Codex%20%7C%20Claude%20%7C%20Cursor-purple.svg)]()
-[![Tests: 51 Passed](https://img.shields.io/badge/Tests-51%20Passed-success.svg)]()
+**Better fixes. Less guesswork.**
 
-Fox and Fox Graph are two standalone, complementary agent skills for AI coding assistants.
-
-- **Fox** (`/fox`): Investigates software defects, identifies root causes across boundaries, applies minimal complete fixes (YAGNI), and verifies outcomes with empirical evidence.
-- **Fox Graph** (`/fox-graph`): Analyzes code relationships, maps patch diffs to upstream callers, identifies unpatched alternate execution paths, and generates prioritized regression verification plans.
-
-Both skills can be installed and used independently. When used together, Fox handles engineering decisions and implementation, while Fox Graph supplies deterministic call-graph evidence and blast-radius coverage analysis.
+Fox helps AI coding agents find the root cause, make focused changes, and verify the result. Fox Graph helps them understand how changes affect the rest of a codebase.
 
 ---
 
-## The Three Usage Modes
+## Choose Your Skill
 
-### Mode 1: Fox Alone (Investigation & Repair)
-Use Fox when debugging issues, investigating root causes, fixing code, or auditing implementations.
+Fox and Fox Graph are two standalone skills you install into your AI coding tool (Google Antigravity, Claude Code, Cursor, or OpenAI Codex). You can install either skill alone or both together.
 
-Fox enforces a disciplined four-step engineering lifecycle:
-1. **Ground**: Define outcomes, constraints, and done criteria. Inspect code and configuration. For reproducible defects, build the smallest reproducer and verify failure before modifying anything.
-2. **Trace**: Follow one input through execution to observable output across boundaries (wrappers to engines, clients to servers). Identify the component that actually owns the behavior.
-3. **Decide and Change**: Apply YAGNI (the simplest complete solution, not an incomplete workaround). Repair the owning component directly if accessible. Avoid superficial wrappers or monkey patches.
-4. **Verify and Deliver**: Re-run the reproducer, check regressions, and test alternative public entry points. Report exact facts, changed files, and test commands.
-
-### Mode 2: Fox Graph Alone (Impact & Coverage Analysis)
-Use Fox Graph when analyzing proposed code changes, investigating blast radii, discovering unverified execution paths, or selecting regression tests across multi-module codebases.
-
-Fox Graph provides graph-assisted patch analysis:
-1. **Understand the patch**: Parse git diff hunks into concrete functions, methods, and classes.
-2. **Query relationships**: Retrieve direct callers, transitive callers (up to depth 3), and cross-module consumers using local AST or GitNexus graphs.
-3. **Detect coverage gaps**: Flag reachable entry points that exercise modified logic but lack targeted tests in the diff, and identify sibling entry points that bypass wrapper fixes.
-4. **Generate verification plan**: Produce a prioritized list of up to five high-value regression checks explaining the entry point, suspected failure mode, and test intent.
-5. **Report limitations**: Disclose statically unresolvable patterns (dynamic dispatch, reflection, native extensions).
-
-### Mode 3: Combined Workflow (Fox + Fox Graph)
-Use both skills on complex multi-module codebases where an internal engine or parser is shared by multiple public entry points:
-- **Fox** governs the investigation, diagnosis, root-cause confirmation, and code modification.
-- **Fox Graph** runs during the Trace and Verify phases to calculate the exact blast radius of the proposed fix, uncover sibling bypass routes, and generate regression checks.
-- Fox incorporates these checks into its verification step before marking the repair complete.
-
-Neither skill requires the other to be installed.
-
----
-
-## Adoption Guide & Concrete Examples
-
-For a detailed adoption guide with step-by-step walkthroughs, prompt recipes, and expected outputs, see [examples/ADOPTION_GUIDE.md](examples/ADOPTION_GUIDE.md).
-
-| Guide / Walkthrough | When to Use | Key Advantage |
+| Skill | What It Does | When to Choose It |
 | :--- | :--- | :--- |
-| **[Example 1: Localized Defect](examples/1-fox-alone-localized-defect/README.md)** | Single-site logic bugs, regex errors, off-by-one errors | **Fox alone**: Zero graph overhead; enforces reproducer-first fix and counterexample testing. |
-| **[Example 2: Diff & PR Audit](examples/2-fox-graph-alone-diff-audit/README.md)** | Code reviews, PR blast-radius checks, test gap audits | **Fox Graph alone**: Non-destructive; parses diffs and generates prioritized regression targets. |
-| **[Example 3: Cross-Module Repair](examples/3-combined-cross-module-repair/README.md)** | Core data structures, shared parsers, public entry points | **Both skills**: Fox drives root-cause repair while Fox Graph ensures all entry points are covered. |
+| **Fox** | **Fix what's broken.**<br>Investigates bugs, identifies root causes, applies focused repairs, and verifies results. | You have a bug to fix, an unexpected test failure, or code to debug. |
+| **Fox Graph** | **Know what else might break.**<br>Maps code relationships, identifies potentially affected paths, and helps select useful regression checks. | You are reviewing a pull request or checking how an edit impacts other files. |
+| **Both** | **Fix the bug. Check the impact.**<br>Two independently installed skills that can be used together on complex tasks. | You are changing a shared core function or data structure used across multiple modules. |
+
+*You do not need a third combined skill. Installing both skills allows your coding agent to use whichever capability your task needs.*
 
 ---
 
-## Installation
+## Get Started
 
-Install Fox alone, Fox Graph alone, or both skills together using `install.py`:
+### 1. Install to Your Project
 
-| Target Agent | Default Workspace Directory |
-|---|---|
-| **Google Antigravity** | `.agents/skills` (or `~/.gemini/config/skills` with `--global`) |
-| **OpenAI Codex** | `.agents/skills` |
-| **Anthropic Claude Code** | `.claude/skills` |
-| **Cursor** | `.cursor/skills` |
+Run the installer inside your project directory. It requires only standard Python (version 3.10 or newer) with zero external dependencies.
 
-### Installation Commands
-
+#### Interactive Setup (Recommended)
+Run the installer in your terminal to select your coding agent and skills:
 ```bash
-# Install Fox alone (default)
-python3 install.py --agent antigravity --skill fox --project /path/to/project
-
-# Install Fox Graph alone
-python3 install.py --agent antigravity --skill fox-graph --project /path/to/project
-
-# Install both skills together
-python3 install.py --agent antigravity --skill all --project /path/to/project
-
-# Install globally for Antigravity (~/.gemini/config/skills)
-python3 install.py --agent antigravity --skill all --global
-
-# Install to Claude Code workspace
-python3 install.py --agent claude --skill all --project /path/to/project
-
-# Install to Cursor workspace
-python3 install.py --agent cursor --skill all --project /path/to/project
-
-# Preview installation without modifying files
-python3 install.py --agent antigravity --skill all --dry-run
+python3 install.py
 ```
 
----
+#### One-Line Command
+Or specify your agent and skill directly:
 
-## Dependencies & Environment Support
-
-### Fox Dependencies
-- **Zero dependencies**: Fox runs using Python 3.10+ standard library modules only.
-- Does not require Node.js, npm, or GitNexus.
-
-### Fox Graph Dependencies
-- **Default Python AST Provider (`python-ast`)**: Zero external dependencies. Uses Python 3.10+ standard library `ast` to parse repositories and trace call hierarchies locally.
-- **Optional Multi-Language Provider (`gitnexus`)**: Optional engine for repositories containing TypeScript, JavaScript, Go, Rust, Java, C#, or C++. Requires Node.js (`npx`) on PATH. Runs embedded LadybugDB/SQLite locally inside `.gitnexus/`.
-- GitNexus is completely optional and never required for basic Fox usage or Python Fox Graph usage.
-
----
-
-## Bundled CLI Utilities
-
-### Fox Utilities (`skills/fox/scripts/`)
-- `proof.py`: Local integrity ledger to record hypotheses, architecture decisions, and test logs with SHA-256 validation.
-- `scaffold.py`: Generates staged directory workspaces with explicit contracts for recurring workflows.
-- `audit.py`: Validates workflow structures and verifies declared outputs.
-
-Quickstart pipeline:
 ```bash
-# Verify environment
+# Google Antigravity or OpenAI Codex (installs to .agents/skills)
+python3 install.py --agent antigravity --skill all
+
+# Anthropic Claude Code (installs to .claude/skills)
+python3 install.py --agent claude --skill all
+
+# Cursor (installs to .cursor/skills)
+python3 install.py --agent cursor --skill all
+```
+
+To install only Fox, pass `--skill fox`. To install only Fox Graph, pass `--skill fox-graph`.
+
+---
+
+## Your First Task
+
+Once installed, start a new chat in your AI coding agent and try one of these prompts:
+
+### If You Installed Fox
+> "Investigate why this function returns the wrong result. Find the cause, fix it, and verify the change."
+
+### If You Installed Fox Graph
+> "Analyze this change and show which other parts of the codebase might be affected."
+
+### If You Installed Both
+> "Investigate this bug, check its impact across the codebase, implement a focused fix, and verify the relevant paths."
+
+### How to Confirm It Loaded
+- **Fox**: Your agent will first write a reproduction test to confirm the failure, trace the issue to the owning component, make a minimal fix, and run verification tests.
+- **Fox Graph**: Your agent will map changed symbols, show caller hierarchies, and list regression tests to run.
+
+If your agent does not recognize the skill, restart the chat session or tell the agent:
+`Use instructions in .agents/skills/fox/SKILL.md`. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more details.
+
+---
+
+## Real Example
+
+Consider a shared authentication header parser in a web framework:
+
+```python
+# A client sends a parameterless challenge
+wa = WWWAuthenticate("bearer")
+header = wa.to_header()
+```
+
+- **The bug**: `to_header()` returns `'Bearer '` with an illegal trailing space. Downstream HTTP parsers reject the request.
+- **Without Fox**: An agent might patch the immediate caller or strip trailing spaces inside a wrapper. Sibling entry points (such as response headers and exception handlers) remain broken.
+- **With Fox**: The agent traces execution to the owning serializer (`auth.py`), fixes the formatting at the source, and ensures that `from_header("Bearer") == WWWAuthenticate("bearer")` holds true in both directions.
+- **With Fox Graph**: The agent inspects the blast radius across the repository, flagging that `Response.www_authenticate` and `Unauthorized.get_headers()` also call this code and require test coverage.
+
+For step-by-step walkthroughs of real defects and pull request audits, see the [Adoption Guide](examples/ADOPTION_GUIDE.md).
+
+---
+
+## How It Works
+
+### Plain English Concepts
+- **Root cause**: The underlying reason something went wrong, rather than just the symptom you noticed.
+- **Blast radius**: The other parts of a project potentially affected when code changes.
+- **Regression**: Something that worked before but breaks after an edit.
+
+### Fox Lifecycle
+Fox guides your agent through four simple steps:
+1. **Ground**: Inspect the code and build the smallest test that demonstrates the problem before touching production files.
+2. **Trace**: Follow the input step-by-step through execution until finding the component that actually owns the behavior.
+3. **Decide and Change**: Make the simplest complete fix at the owning layer. Avoid monkey-patches or wrapper workarounds.
+4. **Verify and Deliver**: Re-run the reproducer, verify edge cases, and run the test suite to prove nothing else broke.
+
+### Fox Graph Lifecycle
+Fox Graph provides deterministic dependency analysis without requiring a server:
+1. **Parse the patch**: Extracts modified functions, methods, and classes from the Git diff.
+2. **Query relationships**: Uses local AST (Abstract Syntax Tree) parsing to trace direct and transitive callers up to depth 3.
+3. **Detect coverage gaps**: Flags reachable code paths that lack tests in the proposed change.
+4. **Suggest verification**: Generates a prioritized list of tests to run before merging.
+
+---
+
+## Advanced Setup
+
+### Global Installation (Antigravity)
+To make Fox available across all projects on your machine for Google Antigravity:
+```bash
+python3 install.py --agent antigravity --skill all --global
+```
+This installs skills to `~/.gemini/config/skills`.
+
+### Non-Interactive CLI Automation
+The installer supports automation flags for CI or setup scripts:
+```bash
+# Preview what would be installed without writing files
+python3 install.py --agent antigravity --skill all --dry-run
+
+# Safely replace an existing installation
+python3 install.py --agent antigravity --skill all --force --project /path/to/project
+```
+
+### Advanced Fox Verification Utilities
+Fox includes an optional evidence ledger (`proof.py`) located in `skills/fox/scripts/`:
+```bash
+# Verify your local environment
 python3 skills/fox/scripts/proof.py doctor
 
-# Initialize a case record
+# Initialize an evidence case
 python3 skills/fox/scripts/proof.py init --out cases/auth --question "Why does token refresh fail?" --target src/auth --intent build
 
 # Record an observed code claim
-python3 skills/fox/scripts/proof.py claim --statement "Token validation fails on clock skew" --evidence E001 --confidence observed --locator auth.py:22 --alternative "Token expired on server" --falsifier "Test with clock skew" cases/auth
+python3 skills/fox/scripts/proof.py claim --statement "Token validation fails due to 2-second client clock skew" --evidence E001 --confidence observed --locator token.py:22 --alternative "Token is genuinely expired on server" --falsifier "Test validation with simulated clock skew" cases/auth
 
 # Record an architecture decision
-python3 skills/fox/scripts/proof.py decision --choose "Add 5-second skew tolerance" --instead-of "Bypass check" --why "Minimal complete fix" --reversible --revisit-when "Auth spec changes" cases/auth
+python3 skills/fox/scripts/proof.py decision --choose "Add 5-second clock skew tolerance window" --instead-of "Bypass expiration check completely" "Force user re-authentication" --why "Minimal standard-compliant fix with zero breaking API changes" --claims C001 --reversible --revisit-when "Auth specification deprecates skew window" cases/auth
 
-# Validate case integrity
+# Check case validity and export report
 python3 skills/fox/scripts/proof.py check cases/auth
-```
-
-### Fox Graph CLI (`skills/fox-graph/scripts/`)
-- `fox_graph.py`: Standalone CLI to run patch coverage and blast-radius analysis.
-
-```bash
-# Analyze unstaged working tree diff using Python AST
-python3 skills/fox-graph/scripts/fox_graph.py --repo . --provider python-ast
-
-# Analyze staged changes with GitNexus
-python3 skills/fox-graph/scripts/fox_graph.py --repo . --staged --provider gitnexus
-
-# Output machine-readable JSON
-python3 skills/fox-graph/scripts/fox_graph.py --repo . --diff patch.diff --json
+python3 skills/fox/scripts/proof.py report cases/auth
 ```
 
 ---
 
-## Limitations
+## Troubleshooting & Limitations
 
-- **Skill guidance, not sandboxing**: Skills provide structured reasoning instructions for LLMs; they cannot physically intercept models that ignore instructions.
-- **Static call graphs are not runtime proofs**: Fox Graph maps statically visible AST call edges and imports. Dynamic dispatch (`getattr`, `eval`, dependency injection) and compiled extensions cannot be resolved statically. Fox Graph discloses these boundaries under Limitations.
-- **Selective invocation**: Fox Graph is valuable for multi-module shared engines and cross-file refactors. For simple single-function logic bugs, Fox Graph adds unnecessary overhead; invoke Fox alone for localized fixes.
+- **Skill guidance, not hard constraints**: Skills provide structured reasoning instructions for AI agents. They improve agent consistency, but cannot intercept models that ignore instructions.
+- **Static code graphs**: Fox Graph uses static code analysis. Dynamic calls (such as runtime `getattr` or dependency injection) cannot be traced statically and are reported as limitations.
+- **Multi-language projects**: Fox Graph defaults to Python AST with zero external dependencies. For TypeScript, JavaScript, Go, or Rust, Fox Graph can optionally use GitNexus if Node.js (`npx`) is available.
+
+For common errors, reinstallation fixes, and agent setup tips, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 
 ---
 
-## License
+## Contributing & License
 
-MIT License. See [LICENSE](LICENSE) for details.
+Contributions, defect reports, and discussions are welcome. Please open an issue or pull request on GitHub:
+https://github.com/Devaretanmay/fox
+
+Distributed under the MIT License. See [LICENSE](LICENSE) for details.
