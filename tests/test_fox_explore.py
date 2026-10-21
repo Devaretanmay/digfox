@@ -139,8 +139,8 @@ class FoxExploreInstructionContractTests(unittest.TestCase):
         )
         self.assertRegex(
             self.content,
-            r"Hand off to `fox-graph` when analyzing callers and regression paths",
-            "Skill must designate Fox Graph for patch blast-radii",
+            r"Read-only execution",
+            "Skill must emphasize read-only execution",
         )
 
 
@@ -159,9 +159,8 @@ class FoxExploreBehavioralEvaluations(unittest.TestCase):
         """Simulate repo exploration and verify that cited file references actually exist."""
         # Simulated exploration response for this repository
         response_sample = (
-            "This repository contains three independent AI coding agent skills:\n"
+            "This repository contains two independent AI coding agent skills:\n"
             "- Fox in `skills/fox/SKILL.md`: root cause analysis and minimal repairs.\n"
-            "- Fox Graph in `skills/fox-graph/SKILL.md`: call graphs and blast-radius analysis.\n"
             "- Fox Explore in `skills/fox-explore/SKILL.md`: open-ended research and architecture.\n"
             "The multi-skill installer is implemented in `install.py`."
         )

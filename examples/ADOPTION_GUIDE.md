@@ -1,6 +1,6 @@
-# Fox & Fox Graph Adoption Guide
+# Fox & Fox Explore Adoption Guide
 
-This guide provides practical examples showing when to use Fox, when to use Fox Graph, or when to use both skills together.
+This guide provides practical examples showing when to use Fox, when to use Fox Explore, or when to use both skills together.
 
 ---
 
@@ -8,12 +8,11 @@ This guide provides practical examples showing when to use Fox, when to use Fox 
 
 | Task or Objective | Recommended Skill | Why |
 | :--- | :--- | :--- |
-| **Fix a localized defect or logic error** (regex parsing, off-by-one errors, math bugs) | **Fox alone** | Isolates the owning layer and fixes it minimally. Running graph indexing on single-site defects adds tool overhead without finding new paths. |
+| **Fix a localized defect or logic error** (regex parsing, off-by-one errors, math bugs) | **Fox alone** | Isolates the owning layer and fixes it minimally. Builds reproducer first, tests counterexamples, and verifies zero regressions. |
 | **Investigate an unfamiliar bug across system boundaries** (CLI to backend, client to server) | **Fox alone** | Traces input through execution to observable output, builds a reproducer, and repairs the owning layer directly. |
-| **Audit a proposed Git diff or Pull Request** before merging | **Fox Graph alone** | Parses diff hunks, queries caller hierarchies, identifies unpatched alternate paths, and lists missing regression tests without touching code. |
-| **Analyze change blast radius or impact** for a proposed refactor | **Fox Graph alone** | Answers which modules and entry points are affected and determines which existing tests exercise the changed symbols. |
-| **Repair a shared internal engine or parser** used by multiple public entry points | **Both (Fox + Fox Graph)** | Fox drives the investigation, diagnosis, and minimal repair. Fox Graph maps upstream callers and generates regression targets across all entry points. |
-| **High-stakes refactoring of core data structures or routing tables** | **Both (Fox + Fox Graph)** | Combines Fox root-cause rigor with deterministic graph impact analysis to verify that no sibling entry points are bypassed. |
+| **Onboard to an unfamiliar repository or component** | **Fox Explore alone** | Explains the request flow, identifies architectural patterns, and provides a clear map of the codebase without editing files. |
+| **Evaluate trade-offs or compare external alternatives** | **Fox Explore alone** | Researches standard open-source libraries and protocols, compares architectural options, and advises on trade-offs. |
+| **Plan an architectural refactor and implement it safely** | **Both (Fox Explore + Fox)** | Fox Explore evaluates alternatives and advises on design trade-offs first; Fox implements the minimal complete fix with verification. |
 
 ---
 
@@ -26,7 +25,6 @@ The defect is entirely localized to a single regular expression generator inside
 
 ### Why Fox Alone?
 - The root cause lives at one specific owning location.
-- Running code graph indexing adds unnecessary tool steps (~10-15 steps) and latency.
 - Fox's four-step workflow ensures a reproducer is built first, counterexamples are tested (such as bare `#` and query strings), and the fix remains minimal.
 
 ### Sample Prompt
@@ -46,100 +44,78 @@ Investigate and fix the issue where validate.URL rejects URLs with fragments dir
 
 ---
 
-## Example 2: Diff Review & Blast-Radius Inspection (Fox Graph Alone)
+## Example 2: Architecture Review & Technical Research (Fox Explore Alone)
 
 ### Scenario
-A developer submits a pull request changing an authentication token parsing utility. Before approving the PR, the engineering team wants to know:
-- Which callers and public entry points are affected by this change?
-- Did the author miss any sibling entry points that also parse tokens?
-- What tests should be run or written to verify this change?
+A developer wants to evaluate an authentication module before expanding it:
+- How does the token validation lifecycle work?
+- How does our custom token decoding compare to standard libraries like PyJWT or Authlib?
+- What are the architectural trade-offs?
 
-### Why Fox Graph Alone?
+### Why Fox Explore Alone?
 - No code needs to be modified or debugged.
-- The objective is analysis, blast-radius mapping, and test gap detection.
-- Fox Graph parses the Git diff directly and queries static call graphs to output a structured verification plan.
+- The objective is understanding, comparative research, and architectural evaluation.
+- Fox Explore is strictly read-only and cites verified repository paths and external documentation.
 
 ### Sample Prompt
 ```text
-Analyze the proposed changes in the current Git diff using Fox Graph:
-1. Parse the changed symbols and affected files.
-2. Map all direct and transitive callers up to depth 3.
-3. Identify any public entry points that exercise the changed logic but lack test coverage in the diff.
-4. Output a prioritized regression verification plan with up to five test targets.
+/fox-explore Review our authentication architecture:
+1. Trace the token validation lifecycle from incoming HTTP request to handler execution.
+2. Compare our custom token decoding with standard libraries (e.g. PyJWT or Authlib).
+3. Identify trade-offs in our current implementation and advise what to improve and what to leave alone.
 ```
 
-### Agent Workflow with Fox Graph
-1. **Understand Patch**: Run `python3 skills/fox-graph/scripts/fox_graph.py --repo .` to parse modified functions and classes.
-2. **Query Relationships**: Retrieve direct callers and upstream consumers across modules.
-3. **Detect Coverage Gaps**: Compare callers against modified test files in the diff. Flag that `response.py` and `exceptions.py` invoke the changed function, but the PR only updated unit tests for the utility itself.
-4. **Deliver Verification Plan**: Produce a prioritized checklist specifying:
-   - Target 1: `Response.www_authenticate` setter
-   - Target 2: `Unauthorized` exception header generator
-   - Target 3: Bidirectional round-trip parsing equality
+### Agent Workflow with Fox Explore
+1. **Understand Question**: Identify scope (authentication middleware and token decoder) and classify as an architectural comparison.
+2. **Investigate Evidence**: Trace `src/middleware/auth.py` and `src/auth/jwt.py`. Research standard RFC 7519 specifications and popular library patterns.
+3. **Connect & Evaluate**: Separate implementation facts from design inference. Weigh simplicity of stdlib-only implementation against security benefits of external token libraries.
+4. **Explain & Recommend**: Deliver a structured explanation with exact line references and clear advice on what to improve and what to leave alone.
 
 ---
 
-## Example 3: Cross-Module Shared Engine Defect (Combined Fox + Fox Graph)
+## Example 3: Explore First, Fix with Proof (Combined Fox + Fox Explore)
 
 ### Scenario
-A shared header serialization class (`WWWAuthenticate` in `src/werkzeug/datastructures/auth.py`) outputs trailing whitespace (`Bearer `) when initialized without realm or parameters.
-
-This component is consumed across three distinct architectural layers:
-1. Direct challenge formatting: `WWWAuthenticate("bearer").to_header()`
-2. Response header properties: `response.www_authenticate = WWWAuthenticate("bearer")`
-3. Exception serialization: `raise Unauthorized(www_authenticate=WWWAuthenticate("bearer"))`
-
-A fix at the owning layer must not break existing callers, and every public entry point must be verified against downstream HTTP parsers.
+A service experiences intermittent authentication failures during slight server time drift. The team wants to research standard clock skew handling, decide on a design, and implement a verified fix.
 
 ### Why Use Both Skills?
-- **Fox** governs engineering discipline: isolates the owning layer, refuses superficial workarounds, writes minimal code, and ensures contract symmetry (such as `from_header` round-trip equality).
-- **Fox Graph** supplies deterministic caller and blast-radius intelligence: maps upstream callers, flags unverified public entry points, and ensures test coverage across all affected modules.
+- **Fox Explore** conducts the read-only technical research and evaluates architectural alternatives before any code is modified.
+- **Fox** enforces engineering discipline: builds a reproducer, repairs the owning layer directly, and verifies the outcome with empirical evidence.
 
 ### Sample Prompt
 ```text
-Diagnose, analyze, and repair the defect where WWWAuthenticate emits trailing whitespace for parameterless challenges:
-1. Use Fox to investigate the root cause at the owning layer and implement a minimal complete fix.
-2. Use Fox Graph to perform a blast-radius analysis mapping all callers, affected modules, and public entry points.
-3. Verify the fix across the owning component and all public entry points discovered by Fox Graph.
+1. Use Fox Explore to investigate standard clock-skew tolerance in token validation and recommend an approach.
+2. Once the design is clear, use Fox to ground the issue, apply the minimal complete fix in src/auth/jwt.py, and verify with tests.
 ```
 
 ### Sequential Combined Workflow
 
 ```text
 +-------------------------------------------------------------------+
-| 1. Ground & Reproduce (Fox)                                       |
-|    - Create reproducer for WWWAuthenticate("bearer").to_header()   |
-|    - Confirm trailing whitespace ('Bearer ')                      |
+| 1. Explore & Compare (Fox Explore)                                |
+|    - Inspect src/auth/jwt.py:decode_token()                       |
+|    - Research RFC 7519 leeway recommendations (default 5-30s)     |
+|    - Recommend adding a 10s leeway parameter without breaking API |
 +-------------------------------------------------------------------+
                                   |
                                   v
 +-------------------------------------------------------------------+
-| 2. Trace & Blast Radius Mapping (Fox + Fox Graph)                 |
-|    - Fox traces execution to auth.py:to_header()                  |
-|    - Fox Graph indexes call hierarchy via local AST / GitNexus    |
-|    - Fox Graph identifies callers: response.py, exceptions.py     |
+| 2. Ground & Reproduce (Fox)                                       |
+|    - Create a test proving failure when token expires by 2s       |
+|    - Verify failure before touching production files              |
 +-------------------------------------------------------------------+
                                   |
                                   v
 +-------------------------------------------------------------------+
 | 3. Minimal Complete Fix (Fox)                                     |
-|    - Patch auth.py to omit trailing whitespace                    |
-|    - Patch from_header() to set token=None for scheme-only input  |
-|    - No monkey-patching or wrapper workarounds                    |
+|    - Update src/auth/jwt.py with default leeway=10                |
+|    - Repair the owning layer directly                             |
 +-------------------------------------------------------------------+
                                   |
                                   v
 +-------------------------------------------------------------------+
-| 4. Test Gap & Verification Plan (Fox Graph)                       |
-|    - Fox Graph checks diff against caller graph                   |
-|    - Generates target list: test_http.py, test_exceptions.py,     |
-|      and test_wrappers.py                                         |
-+-------------------------------------------------------------------+
-                                  |
-                                  v
-+-------------------------------------------------------------------+
-| 5. Multi-Point Verification (Fox)                                 |
-|    - Add test assertions across all three target files            |
+| 4. Verify & Deliver (Fox)                                         |
+|    - Run reproducer to confirm it passes                          |
 |    - Run full test suite to guarantee zero regressions            |
 +-------------------------------------------------------------------+
 ```
@@ -151,5 +127,5 @@ Diagnose, analyze, and repair the defect where WWWAuthenticate emits trailing wh
 Coding agents choose skills based on the terminology in user requests:
 
 1. **To trigger Fox**: Use action words related to diagnosis and repair: `investigate root cause`, `fix defect`, `minimal fix`, `reproduce bug`, `verify regressions`.
-2. **To trigger Fox Graph**: Use keywords related to impact analysis: `blast radius`, `dependency analysis`, `affected callers`, `code relationships`, `unpatched paths`, `coverage gaps`.
-3. **To trigger Both**: Explicitly mention both goals: request a root-cause fix and a blast-radius analysis of affected callers and entry points.
+2. **To trigger Fox Explore**: Use words related to understanding and analysis: `explain architecture`, `walk me through`, `explore alternatives`, `compare implementations`, `advise on trade-offs`.
+3. **To trigger Both**: Explicitly ask to evaluate or explore first, followed by implementing and verifying the fix.

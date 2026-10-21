@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install Fox and Fox Graph agent skills into an agent workspace."""
+"""Install Fox and Fox Explore agent skills into an agent workspace."""
 from __future__ import annotations
 
 import argparse
@@ -16,7 +16,7 @@ AGENTS = {
 }
 ROOT = Path(__file__).resolve().parent
 
-AVAILABLE_SKILLS = ["fox", "fox-graph", "fox-explore"]
+AVAILABLE_SKILLS = ["fox", "fox-explore"]
 
 
 def _install_single(
@@ -94,10 +94,8 @@ def install(
         target_dir = project / AGENTS[agent]
 
     if isinstance(skill, str):
-        if skill == "all":
+        if skill in ("all", "both"):
             skills_to_install = list(AVAILABLE_SKILLS)
-        elif skill == "both":
-            skills_to_install = ["fox", "fox-graph"]
         elif "," in skill:
             parts = [s.strip() for s in skill.split(",") if s.strip()]
             for s in parts:
@@ -152,19 +150,16 @@ def print_success_guidance(dests: list[Path], agent: str, skill: str) -> None:
     print("\nCopy-paste example prompts to get started:")
     if skill == "fox":
         print('  "Investigate why this function returns the wrong result. Find the cause, fix it, and verify the change."')
-    elif skill == "fox-graph":
-        print('  "Analyze this change and show which other parts of the codebase might be affected."')
     elif skill == "fox-explore":
         print('  "Explain this repository architecture, trace the request lifecycle, and compare our design with standard practices."')
     else:
         print('  Fox:         "Investigate why this function returns the wrong result. Find the cause, fix it, and verify the change."')
-        print('  Fox Graph:   "Analyze this change and show which other parts of the codebase might be affected."')
         print('  Fox Explore: "Explain this repository architecture, trace the request flow, and advise on scaling limits."')
-        print('  Combined:    "Explore architectural options, check the impact of the proposed change, and implement the verified fix."')
+        print('  Combined:    "Explore architectural options, recommend the cleanest approach, and implement the verified fix."')
 
     print("\nHow to verify it loaded:")
-    print("  Look for Fox's 4-step workflow (Ground, Trace, Decide and Change, Verify),")
-    print("  Fox Graph's blast-radius summary, or Fox Explore's 4-stage exploration.")
+    print("  Look for Fox's 4-step workflow (Ground, Trace, Decide and Change, Verify)")
+    print("  or Fox Explore's 4-stage exploration (Understand, Investigate, Connect, Explain).")
 
     print("\nIf the agent does not recognize the skill:")
     print("  1. Restart your coding agent session to refresh installed skills.")
@@ -207,23 +202,22 @@ def run_interactive_wizard() -> int:
     print("\n2. Which skill would you like to install?")
     skill_options = [
         ("fox", "Fox: Fix what's broken (root-cause debugging and verified repair)"),
-        ("fox-graph", "Fox Graph: Know what else might break (relationships and impact analysis)"),
-        ("fox-explore", "Fox Explore: Understand your code. Explore what's possible (architecture & research)"),
-        ("all", "All three skills: Complete engineering suite (recommended)"),
+        ("fox-explore", "Fox Explore: Understand your code (architecture, research & recommendations)"),
+        ("all", "Both skills: Complete engineering suite (recommended)"),
     ]
     for idx, (_, label) in enumerate(skill_options, 1):
         print(f"   [{idx}] {label}")
-    print("   Or enter a comma-separated combination (e.g. 1,3 or fox,fox-explore)")
+    print("   Or enter a comma-separated combination (e.g. 1,2 or fox,fox-explore)")
 
     skill_choice = None
     while skill_choice is None:
         try:
-            raw = input("   Select an option [1-4] (default: 4): ").strip()
+            raw = input("   Select an option [1-3] (default: 3): ").strip()
         except (EOFError, KeyboardInterrupt):
             print("\nSetup cancelled.")
             return 1
         if not raw:
-            skill_choice = skill_options[3][0]
+            skill_choice = skill_options[2][0]
             break
         if raw.isdigit() and 1 <= int(raw) <= len(skill_options):
             skill_choice = skill_options[int(raw) - 1][0]
@@ -233,7 +227,7 @@ def run_interactive_wizard() -> int:
             resolved = []
             valid = True
             for p in parts:
-                if p.isdigit() and 1 <= int(p) <= 3:
+                if p.isdigit() and 1 <= int(p) <= 2:
                     resolved.append(skill_options[int(p) - 1][0])
                 elif p in AVAILABLE_SKILLS:
                     resolved.append(p)
@@ -243,7 +237,7 @@ def run_interactive_wizard() -> int:
             if valid and resolved:
                 skill_choice = ",".join(resolved)
                 break
-        print("   Please enter 1, 2, 3, 4, or a combination like 1,3.")
+        print("   Please enter 1, 2, 3, or a combination like 1,2.")
 
     # Step 3: Location (Project vs Global)
     is_global = False
@@ -334,7 +328,7 @@ def main(argv=None) -> int:
     p.add_argument(
         "--skill",
         default="fox",
-        help="Skill to install: fox, fox-graph, fox-explore, all, or comma-separated (default: fox)",
+        help="Skill to install: fox, fox-explore, all, or comma-separated (default: fox)",
     )
     p.add_argument(
         "--project",

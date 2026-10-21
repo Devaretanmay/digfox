@@ -1,6 +1,6 @@
 ---
 name: fox-explore
-description: Explores and explains codebases, answers open-ended architecture and design questions, conducts external technical research, compares technologies, and provides engineering recommendations. Use when understanding unfamiliar codebases or functions, exploring architectural trade-offs, researching external alternatives, comparing implementations, or evaluating feasibility. Read-only by default; do not use for fixing defects (use fox) or analyzing patch blast radii (use fox-graph).
+description: Explores and explains codebases, answers open-ended architecture and design questions, conducts external technical research, compares technologies, and provides engineering recommendations. Use when understanding unfamiliar codebases or functions, exploring architectural trade-offs, researching external alternatives, comparing implementations, or evaluating feasibility. Read-only by default; do not use for fixing defects (use fox).
 license: MIT
 compatibility: Works with coding agents; uses host tools for file inspection and research.
 metadata:
@@ -51,7 +51,6 @@ Answer the user's question directly in the opening lines.
 
 - **Read-only execution:** Never edit code, create migrations, or run destructive commands.
 - **Defects and bug repairs:** Hand off to `fox` when the goal is to reproduce and fix a defect.
-- **Patch impact and blast radius:** Hand off to `fox-graph` when analyzing callers and regression paths for a proposed git diff.
 - **Collaborative use:** When exploring a refactor that leads to a bug fix, use `fox-explore` to evaluate alternatives, then invoke `fox` to implement and verify the change.
 
 ## References

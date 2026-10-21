@@ -1,4 +1,4 @@
-"""Comprehensive tests for Fox and Fox Graph installation, interactive onboarding, and documentation integrity."""
+"""Comprehensive tests for Fox and Fox Explore installation, interactive onboarding, and documentation integrity."""
 from __future__ import annotations
 
 import io
@@ -31,50 +31,26 @@ class InstallerOnboardingTests(unittest.TestCase):
         )
         self.assertEqual(len(dests), 1)
         self.assertTrue((self.project_dir / ".agents/skills/fox/SKILL.md").is_file())
-        self.assertFalse((self.project_dir / ".agents/skills/fox-graph").exists())
-
-    def test_fresh_installation_fox_graph_alone(self):
-        dests = install.install(
-            agent="claude",
-            project=self.project_dir,
-            skill="fox-graph",
-        )
-        self.assertEqual(len(dests), 1)
-        self.assertTrue((self.project_dir / ".claude/skills/fox-graph/SKILL.md").is_file())
-        self.assertFalse((self.project_dir / ".claude/skills/fox").exists())
-        self.assertFalse((self.project_dir / ".claude/skills/fox-explore").exists())
+        self.assertFalse((self.project_dir / ".agents/skills/fox-explore").exists())
 
     def test_fresh_installation_fox_explore_alone(self):
         dests = install.install(
-            agent="antigravity",
+            agent="claude",
             project=self.project_dir,
             skill="fox-explore",
         )
         self.assertEqual(len(dests), 1)
-        self.assertTrue((self.project_dir / ".agents/skills/fox-explore/SKILL.md").is_file())
-        self.assertFalse((self.project_dir / ".agents/skills/fox").exists())
-        self.assertFalse((self.project_dir / ".agents/skills/fox-graph").exists())
+        self.assertTrue((self.project_dir / ".claude/skills/fox-explore/SKILL.md").is_file())
+        self.assertFalse((self.project_dir / ".claude/skills/fox").exists())
 
-    def test_fresh_installation_both_skills_compatibility(self):
-        dests = install.install(
-            agent="cursor",
-            project=self.project_dir,
-            skill="both",
-        )
-        self.assertEqual(len(dests), 2)
-        self.assertTrue((self.project_dir / ".cursor/skills/fox/SKILL.md").is_file())
-        self.assertTrue((self.project_dir / ".cursor/skills/fox-graph/SKILL.md").is_file())
-        self.assertFalse((self.project_dir / ".cursor/skills/fox-explore").exists())
-
-    def test_fresh_installation_all_three_skills(self):
+    def test_fresh_installation_both_skills(self):
         dests = install.install(
             agent="cursor",
             project=self.project_dir,
             skill="all",
         )
-        self.assertEqual(len(dests), 3)
+        self.assertEqual(len(dests), 2)
         self.assertTrue((self.project_dir / ".cursor/skills/fox/SKILL.md").is_file())
-        self.assertTrue((self.project_dir / ".cursor/skills/fox-graph/SKILL.md").is_file())
         self.assertTrue((self.project_dir / ".cursor/skills/fox-explore/SKILL.md").is_file())
 
     def test_fresh_installation_skill_combination(self):
@@ -86,7 +62,6 @@ class InstallerOnboardingTests(unittest.TestCase):
         self.assertEqual(len(dests), 2)
         self.assertTrue((self.project_dir / ".claude/skills/fox/SKILL.md").is_file())
         self.assertTrue((self.project_dir / ".claude/skills/fox-explore/SKILL.md").is_file())
-        self.assertFalse((self.project_dir / ".claude/skills/fox-graph").exists())
 
     def test_reinstallation_without_force_fails(self):
         install.install(agent="codex", project=self.project_dir, skill="fox")
@@ -117,7 +92,7 @@ class InstallerOnboardingTests(unittest.TestCase):
             skill="all",
             dry_run=True,
         )
-        self.assertEqual(len(dests), 3)
+        self.assertEqual(len(dests), 2)
         self.assertFalse((self.project_dir / ".agents").exists())
 
     def test_non_interactive_without_agent_in_headless_raises_error(self):
@@ -129,15 +104,14 @@ class InstallerOnboardingTests(unittest.TestCase):
             self.assertEqual(ctx.exception.code, 2)
 
     def test_interactive_wizard_successful_flow(self):
-        # Simulate: Agent 1 (antigravity), Skill 4 (all three), Scope 1 (project), Project default, No replace needed
-        inputs = iter(["1", "4", "1", str(self.project_dir)])
+        # Simulate: Agent 1 (antigravity), Skill 3 (all), Scope 1 (project), Project default, No replace needed
+        inputs = iter(["1", "3", "1", str(self.project_dir)])
         with patch("builtins.input", lambda *args: next(inputs)), \
              patch.object(sys.stdin, "isatty", return_value=True), \
              patch.object(sys.stdout, "isatty", return_value=True):
             ret = install.main(["--interactive"])
             self.assertEqual(ret, 0)
             self.assertTrue((self.project_dir / ".agents/skills/fox/SKILL.md").is_file())
-            self.assertTrue((self.project_dir / ".agents/skills/fox-graph/SKILL.md").is_file())
             self.assertTrue((self.project_dir / ".agents/skills/fox-explore/SKILL.md").is_file())
 
     def test_interactive_wizard_abort_on_existing_without_force(self):
@@ -188,27 +162,16 @@ class InstallerOnboardingTests(unittest.TestCase):
             install.install("antigravity", self.project_dir / "nonexistent-dir")
         self.assertIn("Project directory must exist", str(ctx_dir.exception))
 
-    def test_missing_optional_graph_provider_message(self):
-        # Running fox_graph.py with an invalid provider reports clear, graceful error
-        script = ROOT / "skills/fox-graph/scripts/fox_graph.py"
-        res = subprocess.run(
-            [sys.executable, str(script), "--repo", str(ROOT), "--provider", "invalid-provider"],
-            capture_output=True,
-            text=True,
-        )
-        self.assertNotEqual(res.returncode, 0)
-        self.assertIn("invalid choice: 'invalid-provider'", res.stderr)
-
     def test_all_markdown_relative_links_resolve(self):
-        # Scan README.md, ADOPTION_GUIDE.md, and SKILL.md files for broken relative links
+        # Scan README.md, TROUBLESHOOTING.md, ADOPTION_GUIDE.md, and SKILL.md files for broken relative links
         md_files = [
             ROOT / "README.md",
+            ROOT / "TROUBLESHOOTING.md",
             ROOT / "examples/ADOPTION_GUIDE.md",
             ROOT / "examples/1-fox-alone-localized-defect/README.md",
-            ROOT / "examples/2-fox-graph-alone-diff-audit/README.md",
-            ROOT / "examples/3-combined-cross-module-repair/README.md",
+            ROOT / "examples/2-fox-explore-architecture-review/README.md",
+            ROOT / "examples/3-combined-explore-and-repair/README.md",
             ROOT / "skills/fox/SKILL.md",
-            ROOT / "skills/fox-graph/SKILL.md",
             ROOT / "skills/fox-explore/SKILL.md",
             ROOT / "skills/fox-explore/references/research-playbook.md",
         ]
