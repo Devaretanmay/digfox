@@ -2,12 +2,13 @@
 
 **Better fixes. Less guesswork. Clear exploration.**
 
-Fox is a suite of two independent Agent Skills for AI coding assistants (Google Antigravity, Claude Code, Cursor, and OpenAI Codex):
+Fox is a suite of three independent Agent Skills for AI coding assistants (Google Antigravity, Claude Code, Cursor, and OpenAI Codex):
 
 - **Fox**: Fix what's broken (root-cause debugging and verified repairs).
 - **Fox Explore**: Understand your code (architecture, research, and recommendations).
+- **Fox Review**: Review proposed changes for concrete defects before merge, without modifying code.
 
-Each skill works on its own with no dependency on the other. You can install either skill or both.
+Each skill works on its own with no dependency on the other. You can install any one skill, any combination, or all three.
 
 ---
 
@@ -17,7 +18,8 @@ Each skill works on its own with no dependency on the other. You can install eit
 | :--- | :--- | :--- |
 | **Fox** | **Fix what's broken.**<br>Investigates bugs, identifies root causes, applies focused repairs, and verifies results. | You have a bug to fix, an unexpected test failure, or code to debug. |
 | **Fox Explore** | **Understand your code. Explore what's possible.**<br>Explains unfamiliar code, researches external open-source alternatives, compares architectures, and advises on trade-offs. | You are onboarding to a repository, evaluating an architectural choice, or researching technical options. |
-| **Both** | **Understand first, then repair with evidence.**<br>Fox Explore maps the system and compares options; Fox implements the authorized repair and verifies the result. | You need architectural analysis followed by an implementation. |
+| **Fox Review** | **Review before shipping.**<br>Inspects diffs and PRs for actionable correctness, security, reliability, and compatibility defects, citing exact changed lines. | You want independent, read-only code review before merge. |
+| **Together** | **Understand first, then repair with evidence.**<br>Fox Explore maps options; Fox repairs an authorized defect; Fox Review independently checks the resulting patch. | You need architectural analysis followed by an implementation. |
 
 ---
 
@@ -54,6 +56,9 @@ python3 install.py --agent antigravity --skill fox
 
 # Install only Fox Explore
 python3 install.py --agent antigravity --skill fox-explore
+
+# Install only Fox Review
+python3 install.py --agent antigravity --skill fox-review
 ```
 
 ---
@@ -68,12 +73,16 @@ Once installed, start a new chat in your AI coding agent and try one of these be
 ### If You Installed Fox Explore
 > "Explain this repository to someone seeing it for the first time. Walk me through the request flow and explain what you would improve and what you would leave alone."
 
-### If You Installed Both
+### If You Installed Fox Review
+> "Review this pull request for actual regressions and security issues. Cite changed lines, and do not edit code."
+
+### If You Installed All Three
 > "Explore architectural alternatives for our caching layer, recommend the cleanest approach, then implement and verify the authorized change."
 
 ### How to Confirm It Loaded
 - **Fox**: Your agent writes a reproduction test first, traces execution to the owning component, applies a minimal fix, and runs verification checks.
 - **Fox Explore**: Your agent answers directly, grounds local explanations in real repository paths, separates facts from inferences, and provides practical recommendations without editing code.
+- **Fox Review**: Your agent inspects the diff and relevant callers, reports only substantiated defects with locations, and leaves files unchanged.
 
 If your agent does not recognize a skill, restart the chat session or tell the agent:
 `Use instructions in .agents/skills/fox/SKILL.md`. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more tips.
@@ -111,6 +120,13 @@ Fox guides your agent through four simple steps:
 2. **Trace**: Follow the input step-by-step through execution until finding the component that actually owns the behavior.
 3. **Repair**: Make the smallest complete change at the owning layer and update every affected caller or contract.
 4. **Verify**: Re-run the reproducer, test a counterexample, run proportionate regressions, and inspect the final diff.
+
+### Fox Review Lifecycle
+Fox Review independently assesses a proposed patch:
+1. **Scope**: Identify the diff, base revision, intended change, and relevant contracts.
+2. **Trace**: Follow changed data and control flow through affected callers and state.
+3. **Challenge**: Look for concrete regressions, test counterexamples, and reject speculative findings.
+4. **Report**: Give prioritized, line-specific findings and verification limits without changing code.
 
 ### Fox Explore Lifecycle
 Fox Explore provides read-only codebase understanding and technical research:
@@ -165,7 +181,7 @@ python3 skills/fox/scripts/proof.py report cases/auth
 ## Troubleshooting & Limitations
 
 - **Skill guidance, not hard constraints**: Skills provide structured reasoning instructions for AI agents. They improve agent consistency, but cannot intercept models that ignore instructions.
-- **Read-only exploration**: Fox Explore is read-only by default and will not modify repository files or scaffold architectures unless explicitly requested.
+- **Read-only analysis**: Fox Explore does not implement changes; Fox Review never edits files or approves or merges a PR.
 - **Behavioral evidence is separate**: Metadata and instruction-contract tests check packaging, not agent reliability. See [behavioral evaluations](evals/README.md) for controlled baseline comparisons.
 - **Current evaluation status**: See [evaluation results](evals/RESULTS.md). Invalid agent runs are excluded rather than counted as failures.
 
