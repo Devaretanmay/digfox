@@ -16,7 +16,7 @@ AGENTS = {
 }
 ROOT = Path(__file__).resolve().parent
 
-AVAILABLE_SKILLS = ["fox", "fox-explore", "fox-review"]
+AVAILABLE_SKILLS = ["fox", "fox-explore", "fox-review", "fox-fragments"]
 LEGACY_BOTH_SKILLS = ["fox", "fox-explore"]
 
 
@@ -156,12 +156,15 @@ def print_success_guidance(dests: list[Path], agent: str, skill: str) -> None:
         print('  "Investigate why this function returns the wrong result. Find the cause, fix it, and verify the change."')
     elif skill == "fox-explore":
         print('  "Explain this repository architecture, trace the request lifecycle, and compare our design with standard practices."')
+    elif skill == "fox-fragments":
+        print('  "Use Fox Fragments and read only the instructions needed for this task."')
     elif skill == "fox-review":
         print('  "Review the last commit for correctness, regressions, missing tests, and unnecessary complexity. Do not edit files."')
     else:
         print('  Fox:         "Investigate why this function returns the wrong result. Find the cause, fix it, and verify the change."')
         print('  Fox Explore: "Explain this repository architecture, trace the request flow, and advise on scaling limits."')
         print('  Fox Review:  "Review the last commit for correctness and regression risks without editing files."')
+        print('  Fox Fragments: "Select and load only the guidance needed for this task."')
         print('  Combined:    "Explore the design, implement the authorized repair, then review the resulting diff."')
 
     print("\nHow to verify it loaded:")
@@ -212,7 +215,8 @@ def run_interactive_wizard() -> int:
         ("fox", "Fox: Fix what's broken (root-cause debugging and verified repair)"),
         ("fox-explore", "Fox Explore: Understand your code (architecture, research & recommendations)"),
         ("fox-review", "Fox Review: Audit a change (correctness, risk & unnecessary complexity)"),
-        ("all", "All three skills: Complete engineering suite (recommended)"),
+        ("fox-fragments", "Fox Fragments: Load focused guidance on demand"),
+        ("all", "All four skills (full suite)"),
     ]
     for idx, (_, label) in enumerate(skill_options, 1):
         print(f"   [{idx}] {label}")
@@ -221,12 +225,12 @@ def run_interactive_wizard() -> int:
     skill_choice = None
     while skill_choice is None:
         try:
-            raw = input("   Select an option [1-4] (default: 4): ").strip()
+            raw = input("   Select an option [1-5] (default: 5): ").strip()
         except (EOFError, KeyboardInterrupt):
             print("\nSetup cancelled.")
             return 1
         if not raw:
-            skill_choice = skill_options[3][0]
+            skill_choice = skill_options[4][0]
             break
         if raw.isdigit() and 1 <= int(raw) <= len(skill_options):
             skill_choice = skill_options[int(raw) - 1][0]
@@ -236,7 +240,7 @@ def run_interactive_wizard() -> int:
             resolved = []
             valid = True
             for p in parts:
-                if p.isdigit() and 1 <= int(p) <= 3:
+                if p.isdigit() and 1 <= int(p) <= 4:
                     resolved.append(skill_options[int(p) - 1][0])
                 elif p in AVAILABLE_SKILLS:
                     resolved.append(p)
@@ -246,7 +250,7 @@ def run_interactive_wizard() -> int:
             if valid and resolved:
                 skill_choice = ",".join(resolved)
                 break
-        print("   Please enter 1, 2, 3, 4, or a combination like 1,3.")
+        print("   Please enter 1 through 5, or a combination like 1,4.")
 
     # Step 3: Location (Project vs Global)
     is_global = False
