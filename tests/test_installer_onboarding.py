@@ -43,6 +43,24 @@ class InstallerOnboardingTests(unittest.TestCase):
         self.assertTrue((self.project_dir / ".claude/skills/fox-explore/SKILL.md").is_file())
         self.assertFalse((self.project_dir / ".claude/skills/fox").exists())
 
+    def test_fresh_installation_review_alone(self):
+        dests = install.install(agent="codex", project=self.project_dir, skill="fox-review")
+        self.assertEqual(len(dests), 1)
+        self.assertTrue((self.project_dir / ".agents/skills/fox-review/SKILL.md").is_file())
+        self.assertFalse((self.project_dir / ".agents/skills/fox").exists())
+        self.assertFalse((self.project_dir / ".agents/skills/fox-explore").exists())
+
+    def test_interactive_review_numeric_combination(self):
+        inputs = iter(["1", "1,3", "1", str(self.project_dir)])
+        with patch("builtins.input", lambda *args: next(inputs)), \
+             patch.object(sys.stdin, "isatty", return_value=True), \
+             patch.object(sys.stdout, "isatty", return_value=True):
+            ret = install.main(["--interactive"])
+            self.assertEqual(ret, 0)
+            self.assertTrue((self.project_dir / ".agents/skills/fox/SKILL.md").is_file())
+            self.assertTrue((self.project_dir / ".agents/skills/fox-review/SKILL.md").is_file())
+            self.assertFalse((self.project_dir / ".agents/skills/fox-explore").exists())
+
     def test_fresh_installation_both_skills(self):
         dests = install.install(
             agent="cursor",
