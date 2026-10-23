@@ -29,7 +29,7 @@ class SkillIndependenceInstallationTests(unittest.TestCase):
             "cursor": ".cursor/skills",
         }
         for agent, target in targets.items():
-            for selected in ("fox", "fox-explore", "fox-review"):
+            for selected in install.AVAILABLE_SKILLS:
                 workspace = self.project / f"{agent}-{selected}"
                 workspace.mkdir()
                 destinations = install.install(agent, workspace, skill=selected)
@@ -38,13 +38,18 @@ class SkillIndependenceInstallationTests(unittest.TestCase):
                 for absent in set(install.AVAILABLE_SKILLS) - {selected}:
                     self.assertFalse((destinations[0].parent / absent).exists())
 
-    def test_all_aliases_and_explicit_pair_install_expected_skills(self):
-        for selection in ("all", "both", "fox,fox-explore"):
+    def test_all_installs_exactly_three_skills(self):
+        for selection in ("all", "fox,fox-explore,fox-review"):
             workspace = self.project / selection.replace(",", "-")
             workspace.mkdir()
             destinations = install.install("codex", workspace, skill=selection)
-            expected = set(install.AVAILABLE_SKILLS) if selection in ("all", "both") else {"fox", "fox-explore"}
-            self.assertEqual({path.name for path in destinations}, expected)
+            self.assertEqual({path.name for path in destinations}, set(install.AVAILABLE_SKILLS))
+
+    def test_both_alias_preserves_original_two_skills(self):
+        workspace = self.project / "legacy-both"
+        workspace.mkdir()
+        destinations = install.install("codex", workspace, skill="both")
+        self.assertEqual({path.name for path in destinations}, {"fox", "fox-explore"})
 
 
 class SkillIndependentExecutionTests(unittest.TestCase):
@@ -68,6 +73,15 @@ class SkillIndependentExecutionTests(unittest.TestCase):
             self.assertFalse((explore_dir / "scripts").exists())
             self.assertFalse((explore_dir.parent / "fox").exists())
 
+    def test_fox_review_has_no_runtime_dependency(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp)
+            review_dir = install.install("claude", workspace, skill="fox-review")[0]
+            self.assertTrue((review_dir / "references/review-playbook.md").is_file())
+            self.assertFalse((review_dir / "scripts").exists())
+            self.assertFalse((review_dir.parent / "fox").exists())
+            self.assertFalse((review_dir.parent / "fox-explore").exists())
+
 
 class ActivationContractTests(unittest.TestCase):
     """Check benchmark labels and metadata coverage, not model selection behavior."""
@@ -83,21 +97,21 @@ class ActivationContractTests(unittest.TestCase):
         labels = [set(task["expected_activation"]) for task in self.tasks]
         self.assertIn({"fox"}, labels)
         self.assertIn({"fox-explore"}, labels)
-        self.assertIn({"fox", "fox-explore"}, labels)
-        self.assertIn(set(), labels)
         self.assertIn({"fox-review"}, labels)
+        self.assertIn({"fox", "fox-explore"}, labels)
+        self.assertIn({"fox", "fox-review"}, labels)
+        self.assertIn(set(), labels)
 
     def test_descriptions_contain_positive_and_negative_triggers(self):
         self.assertIn("use for", self.fox)
         self.assertIn("do not use", self.fox)
         self.assertIn("use for", self.explore)
         self.assertIn("do not use", self.explore)
+        self.assertIn("use for", self.review)
+        self.assertIn("do not use", self.review)
         self.assertIn("trivial edits", self.fox)
         self.assertIn("repair defects", self.explore)
-        self.assertIn("use when", self.review)
-        self.assertIn("do not use", self.review)
-        self.assertIn("pull request", self.review)
-        self.assertIn("read-only", self.review)
+        self.assertIn("do not use to repair defects", self.review)
 
     def test_activation_cases_reference_only_supported_skills(self):
         supported = set(install.AVAILABLE_SKILLS)
@@ -130,6 +144,29 @@ class EvaluationFixtureTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("repair-wrapper-timeout: repair", result.stdout)
         self.assertIn("explore-request-flow: explore", result.stdout)
+        self.assertIn("review-tenant-regression: review", result.stdout)
+
+    def test_review_fixtures_prepare_clean_candidate_commits(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "review-results.json"
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "evals/run.py"),
+                    "--variant", "fox-review",
+                    "--agent-command", "true",
+                    "--task", "review-tenant-regression",
+                    "--task", "review-clean-change",
+                    "--output", str(output),
+                ],
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            records = json.loads(output.read_text(encoding="utf-8"))["results"]
+            self.assertEqual(len(records), 2)
+            self.assertTrue(all(record["human_review_required"] for record in records))
+            self.assertTrue(all(record["changed_files"] == [] for record in records))
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Comprehensive tests for Fox and Fox Explore installation, interactive onboarding, and documentation integrity."""
+"""Tests for independent Fox skill installation, onboarding, and documentation integrity."""
 from __future__ import annotations
 
 import io
@@ -32,6 +32,7 @@ class InstallerOnboardingTests(unittest.TestCase):
         self.assertEqual(len(dests), 1)
         self.assertTrue((self.project_dir / ".agents/skills/fox/SKILL.md").is_file())
         self.assertFalse((self.project_dir / ".agents/skills/fox-explore").exists())
+        self.assertFalse((self.project_dir / ".agents/skills/fox-review").exists())
 
     def test_fresh_installation_fox_explore_alone(self):
         dests = install.install(
@@ -42,9 +43,14 @@ class InstallerOnboardingTests(unittest.TestCase):
         self.assertEqual(len(dests), 1)
         self.assertTrue((self.project_dir / ".claude/skills/fox-explore/SKILL.md").is_file())
         self.assertFalse((self.project_dir / ".claude/skills/fox").exists())
+        self.assertFalse((self.project_dir / ".claude/skills/fox-review").exists())
 
-    def test_fresh_installation_review_alone(self):
-        dests = install.install(agent="codex", project=self.project_dir, skill="fox-review")
+    def test_fresh_installation_fox_review_alone(self):
+        dests = install.install(
+            agent="codex",
+            project=self.project_dir,
+            skill="fox-review",
+        )
         self.assertEqual(len(dests), 1)
         self.assertTrue((self.project_dir / ".agents/skills/fox-review/SKILL.md").is_file())
         self.assertFalse((self.project_dir / ".agents/skills/fox").exists())
@@ -61,26 +67,32 @@ class InstallerOnboardingTests(unittest.TestCase):
             self.assertTrue((self.project_dir / ".agents/skills/fox-review/SKILL.md").is_file())
             self.assertFalse((self.project_dir / ".agents/skills/fox-explore").exists())
 
-    def test_fresh_installation_both_skills(self):
+    def test_fresh_installation_all_skills(self):
         dests = install.install(
             agent="cursor",
             project=self.project_dir,
             skill="all",
         )
         self.assertEqual(len(dests), 3)
-        self.assertTrue((self.project_dir / ".cursor/skills/fox-review/SKILL.md").is_file())
         self.assertTrue((self.project_dir / ".cursor/skills/fox/SKILL.md").is_file())
         self.assertTrue((self.project_dir / ".cursor/skills/fox-explore/SKILL.md").is_file())
+        self.assertTrue((self.project_dir / ".cursor/skills/fox-review/SKILL.md").is_file())
 
     def test_fresh_installation_skill_combination(self):
         dests = install.install(
             agent="claude",
             project=self.project_dir,
-            skill="fox,fox-explore",
+            skill="fox,fox-review",
         )
         self.assertEqual(len(dests), 2)
         self.assertTrue((self.project_dir / ".claude/skills/fox/SKILL.md").is_file())
-        self.assertTrue((self.project_dir / ".claude/skills/fox-explore/SKILL.md").is_file())
+        self.assertTrue((self.project_dir / ".claude/skills/fox-review/SKILL.md").is_file())
+        self.assertFalse((self.project_dir / ".claude/skills/fox-explore").exists())
+
+    def test_legacy_both_alias_keeps_original_pair(self):
+        dests = install.install(agent="claude", project=self.project_dir, skill="both")
+        self.assertEqual({path.name for path in dests}, {"fox", "fox-explore"})
+        self.assertFalse((self.project_dir / ".claude/skills/fox-review").exists())
 
     def test_reinstallation_without_force_fails(self):
         install.install(agent="codex", project=self.project_dir, skill="fox")
@@ -123,7 +135,7 @@ class InstallerOnboardingTests(unittest.TestCase):
             self.assertEqual(ctx.exception.code, 2)
 
     def test_interactive_wizard_successful_flow(self):
-        # Simulate: Agent 1 (antigravity), Skill 4 (all), Scope 1 (project), Project default, No replace needed
+        # Simulate: Agent 1 (antigravity), Skill 4 (all), Scope 1 (project), Project default
         inputs = iter(["1", "4", "1", str(self.project_dir)])
         with patch("builtins.input", lambda *args: next(inputs)), \
              patch.object(sys.stdin, "isatty", return_value=True), \
@@ -196,9 +208,9 @@ class InstallerOnboardingTests(unittest.TestCase):
             ROOT / "examples/3-combined-explore-and-repair/README.md",
             ROOT / "skills/fox/SKILL.md",
             ROOT / "skills/fox-explore/SKILL.md",
+            ROOT / "skills/fox-explore/references/research-playbook.md",
             ROOT / "skills/fox-review/SKILL.md",
             ROOT / "skills/fox-review/references/review-playbook.md",
-            ROOT / "skills/fox-explore/references/research-playbook.md",
             ROOT / "skills/fox/references/diagnosis.md",
             ROOT / "skills/fox/references/repair.md",
         ]

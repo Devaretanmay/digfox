@@ -24,7 +24,13 @@ def run(command: list[str], cwd: Path, timeout: int = 300) -> subprocess.Complet
 
 
 def install_variant(workspace: Path, variant: str) -> None:
-    names = {"fox": ["fox"], "fox-explore": ["fox-explore"], "both": ["fox", "fox-explore"], "fox-review": ["fox-review"], "all": ["fox", "fox-explore", "fox-review"]}.get(variant, [])
+    names = {
+        "fox": ["fox"],
+        "fox-explore": ["fox-explore"],
+        "fox-review": ["fox-review"],
+        "both": ["fox", "fox-explore"],
+        "all": ["fox", "fox-explore", "fox-review"],
+    }.get(variant, [])
     for agent_dir in (workspace / ".agents/skills", workspace / ".claude/skills"):
         for name in names:
             target = agent_dir / name
@@ -87,6 +93,26 @@ def run_task(task: dict, variant: str, agent_command: str, timeout: int) -> dict
         run(["git", "add", "."], workspace)
         run(["git", "-c", "user.name=Fox Eval", "-c", "user.email=eval@example.invalid", "commit", "-qm", "fixture"], workspace)
 
+        candidate_patch = task.get("candidate_patch")
+        if candidate_patch:
+            applied = run(["git", "apply", candidate_patch], workspace)
+            if applied.returncode != 0:
+                raise RuntimeError(
+                    f"Could not apply {candidate_patch} for {task['id']}: {applied.stderr.strip()}"
+                )
+            run(["git", "add", "-u"], workspace)
+            committed = run(
+                [
+                    "git", "-c", "user.name=Fox Eval", "-c", "user.email=eval@example.invalid",
+                    "commit", "-qm", "candidate change",
+                ],
+                workspace,
+            )
+            if committed.returncode != 0:
+                raise RuntimeError(
+                    f"Could not commit candidate for {task['id']}: {committed.stderr.strip()}"
+                )
+
         started = time.monotonic()
         agent_args = command_for(agent_command, workspace, task["prompt"])
         try:
@@ -148,7 +174,11 @@ def summarize(records: list[dict]) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--variant", choices=["baseline", "fox", "fox-explore", "fox-review", "both", "all"], required=True)
+    parser.add_argument(
+        "--variant",
+        choices=["baseline", "fox", "fox-explore", "fox-review", "both", "all"],
+        required=True,
+    )
     parser.add_argument("--agent-command", help="Command template containing {workspace} and {prompt}")
     parser.add_argument("--task", action="append", help="Task ID; repeat to select multiple tasks")
     parser.add_argument("--output", type=Path, default=Path("eval-results.json"))

@@ -1,6 +1,6 @@
-# Fox and Fox Explore Adoption Guide
+# Fox skills adoption guide
 
-This guide shows when to use Fox, Fox Explore, or both.
+This guide shows when to use Fox, Fox Explore, Fox Review, or a sequence of them.
 
 ---
 
@@ -12,7 +12,9 @@ This guide shows when to use Fox, Fox Explore, or both.
 | **Investigate an unfamiliar bug across system boundaries** (CLI to backend, client to server) | **Fox alone** | Traces input through execution to observable output, builds a reproducer, and repairs the owning layer directly. |
 | **Onboard to an unfamiliar repository or component** | **Fox Explore alone** | Explains the request flow, identifies architectural patterns, and provides a clear map of the codebase without editing files. |
 | **Evaluate trade-offs or compare external alternatives** | **Fox Explore alone** | Researches standard open-source libraries and protocols, compares architectural options, and advises on trade-offs. |
+| **Review a diff, branch, commit, or pull request** | **Fox Review alone** | Audits the exact change and connected behavior, validates findings, and leaves files unchanged. |
 | **Plan an architectural refactor and implement it safely** | **Fox Explore + Fox** | Fox Explore evaluates alternatives and advises on design trade-offs first; Fox implements the minimal complete fix with verification. |
+| **Review findings and then repair them** | **Fox Review + Fox** | Fox Review produces an independent evidence-backed report; Fox implements only the authorized verified findings. |
 
 ---
 
@@ -122,10 +124,36 @@ A service experiences intermittent authentication failures during slight server 
 
 ---
 
+## Example 4: Independent Change Review (Fox Review Alone)
+
+### Scenario
+A pull request adds account-scoped order lookup. The author wants a pre-merge audit for tenant leaks, regressions, weak tests, and needless complexity.
+
+### Why Fox Review Alone?
+- The code already exists and the task is assessment, not implementation.
+- The reviewer must inspect the diff and connected callers without changing the author's work.
+- A clean change must be allowed to pass without invented findings.
+
+### Sample Prompt
+```text
+/fox-review Review this branch against SPEC.md. Check correctness, tenant isolation,
+regression risk, test strength, performance, and unnecessary complexity. Report only
+verified actionable findings. Do not edit files.
+```
+
+### Agent Workflow with Fox Review
+1. **Set the target**: Resolve the merge base, branch head, specification, and repository rules.
+2. **Trace the change**: Read the diff, query implementation, callers, tests, and schema.
+3. **Validate findings**: Exercise duplicate numeric IDs across two accounts and challenge each candidate finding.
+4. **Report**: Put verified findings first with severity, location, evidence, consequence, and repair direction. If none remain, say so and disclose untested paths.
+
+---
+
 ## Best Practices for Prompting Coding Agents
 
 Coding agents choose skills based on the terminology in user requests:
 
 1. **To trigger Fox**: Use action words related to diagnosis and repair: `investigate root cause`, `fix defect`, `minimal fix`, `reproduce bug`, `verify regressions`.
 2. **To trigger Fox Explore**: Use words related to understanding and analysis: `explain architecture`, `walk me through`, `explore alternatives`, `compare implementations`, `advise on trade-offs`.
-3. **To trigger both**: Explicitly ask for read-only analysis first, followed by an authorized implementation and verification.
+3. **To trigger Fox Review**: Name the review target and use terms such as `review this diff`, `audit the last commit`, `review my PR`, or `pre-merge risk`.
+4. **To combine skills**: State the order and authorization boundary, such as read-only exploration, authorized implementation, then read-only review.

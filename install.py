@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install Fox and Fox Explore agent skills into an agent workspace."""
+"""Install Fox agent skills into an agent workspace."""
 from __future__ import annotations
 
 import argparse
@@ -17,6 +17,7 @@ AGENTS = {
 ROOT = Path(__file__).resolve().parent
 
 AVAILABLE_SKILLS = ["fox", "fox-explore", "fox-review"]
+LEGACY_BOTH_SKILLS = ["fox", "fox-explore"]
 
 
 def _install_single(
@@ -94,8 +95,11 @@ def install(
         target_dir = project / AGENTS[agent]
 
     if isinstance(skill, str):
-        if skill in ("all", "both"):
+        if skill == "all":
             skills_to_install = list(AVAILABLE_SKILLS)
+        elif skill == "both":
+            # Preserve the original two-skill interface for existing automation.
+            skills_to_install = list(LEGACY_BOTH_SKILLS)
         elif "," in skill:
             parts = [s.strip() for s in skill.split(",") if s.strip()]
             for s in parts:
@@ -150,19 +154,20 @@ def print_success_guidance(dests: list[Path], agent: str, skill: str) -> None:
     print("\nCopy-paste example prompts to get started:")
     if skill == "fox":
         print('  "Investigate why this function returns the wrong result. Find the cause, fix it, and verify the change."')
-    elif skill == "fox-review":
-        print('  "Review this pull request for concrete regressions. Cite changed lines and show triggering cases; do not edit code."')
     elif skill == "fox-explore":
         print('  "Explain this repository architecture, trace the request lifecycle, and compare our design with standard practices."')
+    elif skill == "fox-review":
+        print('  "Review the last commit for correctness, regressions, missing tests, and unnecessary complexity. Do not edit files."')
     else:
         print('  Fox:         "Investigate why this function returns the wrong result. Find the cause, fix it, and verify the change."')
         print('  Fox Explore: "Explain this repository architecture, trace the request flow, and advise on scaling limits."')
-        print('  Fox Review:  "Review this patch for regressions and compatibility problems, without editing code."')
-        print('  Combined:    "Explore options, repair the defect, then independently review the patch."')
+        print('  Fox Review:  "Review the last commit for correctness and regression risks without editing files."')
+        print('  Combined:    "Explore the design, implement the authorized repair, then review the resulting diff."')
 
     print("\nHow to verify it loaded:")
     print("  Look for Fox's 4-step workflow (Ground, Trace, Repair, Verify)")
-    print("  or Fox Explore's 4-stage exploration (Scope, Map, Compare, Report).")
+    print("  Fox Explore's 4-stage exploration (Scope, Map, Compare, Report),")
+    print("  or Fox Review's 4-stage audit (Target, Trace, Validate, Report).")
 
     print("\nIf the agent does not recognize the skill:")
     print("  1. Restart your coding agent session to refresh installed skills.")
@@ -173,7 +178,7 @@ def print_success_guidance(dests: list[Path], agent: str, skill: str) -> None:
 
 def run_interactive_wizard() -> int:
     print("\nWelcome to Fox Setup")
-    print("Better fixes. Less guesswork. Clear exploration.\n")
+    print("Better fixes. Clear exploration. Verified reviews.\n")
 
     # Step 1: Agent selection
     print("1. Which AI coding agent do you use?")
@@ -206,12 +211,12 @@ def run_interactive_wizard() -> int:
     skill_options = [
         ("fox", "Fox: Fix what's broken (root-cause debugging and verified repair)"),
         ("fox-explore", "Fox Explore: Understand your code (architecture, research & recommendations)"),
-        ("fox-review", "Fox Review: Review changes for concrete defects before merge"),
+        ("fox-review", "Fox Review: Audit a change (correctness, risk & unnecessary complexity)"),
         ("all", "All three skills: Complete engineering suite (recommended)"),
     ]
     for idx, (_, label) in enumerate(skill_options, 1):
         print(f"   [{idx}] {label}")
-    print("   Or enter a comma-separated combination (e.g. 1,2 or fox,fox-explore)")
+    print("   Or enter a comma-separated combination (e.g. 1,3 or fox,fox-review)")
 
     skill_choice = None
     while skill_choice is None:
@@ -332,7 +337,7 @@ def main(argv=None) -> int:
     p.add_argument(
         "--skill",
         default="fox",
-        help="Skill to install: fox, fox-explore, all, or comma-separated (default: fox)",
+        help="Skill to install: fox, fox-explore, fox-review, all, both, or comma-separated (default: fox)",
     )
     p.add_argument(
         "--project",

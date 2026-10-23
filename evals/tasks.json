@@ -4,46 +4,20 @@
     "kind": "repair",
     "fixture": "fixtures/wrapper-timeout",
     "prompt": "A caller passes timeout=0 to disable the transport timeout, but the request still uses the client's default timeout. Find the root cause, make the smallest complete repair, and verify it.",
-    "test_command": [
-      "python3",
-      "-m",
-      "unittest",
-      "-v"
-    ],
-    "allowed_changes": [
-      "client.py",
-      "test_client.py"
-    ],
-    "must_change": [
-      "client.py"
-    ],
-    "expected_activation": [
-      "fox"
-    ]
+    "test_command": ["python3", "-m", "unittest", "-v"],
+    "allowed_changes": ["client.py", "test_client.py"],
+    "must_change": ["client.py"],
+    "expected_activation": ["fox"]
   },
   {
     "id": "repair-tenant-boundary",
     "kind": "repair",
     "fixture": "fixtures/tenant-boundary",
     "prompt": "Invoice lookup sometimes returns another tenant's invoice when numeric IDs overlap. Reproduce the defect, trace the responsible layer, repair every affected caller, and verify regressions.",
-    "test_command": [
-      "python3",
-      "-m",
-      "unittest",
-      "-v"
-    ],
-    "allowed_changes": [
-      "repository.py",
-      "service.py",
-      "test_invoices.py"
-    ],
-    "must_change": [
-      "repository.py",
-      "service.py"
-    ],
-    "expected_activation": [
-      "fox"
-    ]
+    "test_command": ["python3", "-m", "unittest", "-v"],
+    "allowed_changes": ["repository.py", "service.py", "test_invoices.py"],
+    "must_change": ["repository.py", "service.py"],
+    "expected_activation": ["fox"]
   },
   {
     "id": "explore-request-flow",
@@ -52,9 +26,7 @@
     "prompt": "Trace the request flow from submit_report to durable storage. Separate observed facts, supported inferences, and unknowns. Explain what should remain unchanged.",
     "allowed_changes": [],
     "must_change": [],
-    "expected_activation": [
-      "fox-explore"
-    ],
+    "expected_activation": ["fox-explore"],
     "rubric": [
       "Cites app.py, jobs.py, and storage.py",
       "Correctly explains the synchronous queue drain",
@@ -69,14 +41,45 @@
     "prompt": "Evaluate whether this project should replace SQLite with PostgreSQL. Compare maintainability, performance, operational complexity, migration cost, and the option to keep the current design. Do not edit files.",
     "allowed_changes": [],
     "must_change": [],
-    "expected_activation": [
-      "fox-explore"
-    ],
+    "expected_activation": ["fox-explore"],
     "rubric": [
       "Uses repository evidence before recommending a change",
       "Includes the no-change option",
       "Covers all requested trade-off criteria",
       "States missing workload data as unknown",
+      "Makes no repository changes"
+    ]
+  },
+  {
+    "id": "review-tenant-regression",
+    "kind": "review",
+    "fixture": "fixtures/review-tenant-guard",
+    "prompt": "Review proposed.patch against service.py and contract.md. Report only concrete introduced defects with location, consequence and smallest safe correction. Do not modify files.",
+    "allowed_changes": [],
+    "must_change": [],
+    "expected_activation": ["fox-review"],
+    "rubric": [
+      "Identifies that replacing get_by_id_and_tenant with get_by_id permits cross-tenant invoice access",
+      "Cites service.py or proposed.patch changed line",
+      "Explains tenant IDs may overlap and this crosses an authorization boundary",
+      "Suggests retaining tenant-scoped lookup rather than adding speculative layers",
+      "Makes no repository changes"
+    ]
+  },
+  {
+    "id": "review-clean-change",
+    "kind": "review",
+    "fixture": "fixtures/review-clean",
+    "candidate_patch": "candidate.patch",
+    "prompt": "Review the last commit against SPEC.md. Report only verified actionable findings and do not edit files.",
+    "test_command": ["python3", "-m", "unittest", "-v"],
+    "allowed_changes": [],
+    "must_change": [],
+    "expected_activation": ["fox-review"],
+    "rubric": [
+      "Reports no verified findings",
+      "Does not invent a style, abstraction, or performance problem",
+      "States the checks run or review limits",
       "Makes no repository changes"
     ]
   },
@@ -93,21 +96,10 @@
     "expected_activation": []
   },
   {
-    "id": "negative-explore-repair",
-    "kind": "activation",
-    "prompt": "Explain why invoice lookup crosses tenants, then repair it and run tests.",
-    "expected_activation": [
-      "fox",
-      "fox-explore"
-    ]
-  },
-  {
     "id": "review-change-regression",
     "kind": "activation",
     "prompt": "Review this pull request diff for functional regressions, security defects and broken contracts. Give actionable findings with changed-line citations. Do not edit files.",
-    "expected_activation": [
-      "fox-review"
-    ]
+    "expected_activation": ["fox-review"]
   },
   {
     "id": "negative-review-style-only",
@@ -116,30 +108,21 @@
     "expected_activation": []
   },
   {
-    "id": "review-then-repair",
+    "id": "negative-architecture-review-wording",
     "kind": "activation",
-    "prompt": "Review this failing patch for defects and then fix the verified bug with tests.",
-    "expected_activation": [
-      "fox-review",
-      "fox"
-    ]
+    "prompt": "Review the architecture of this repository and compare its queue design with current alternatives. Do not edit files.",
+    "expected_activation": ["fox-explore"]
   },
   {
-    "id": "review-tenant-regression",
-    "kind": "review",
-    "fixture": "fixtures/review-tenant-guard",
-    "prompt": "Review proposed.patch against service.py and contract.md. Report only concrete introduced defects with location, consequence and smallest safe correction. Do not modify files.",
-    "allowed_changes": [],
-    "must_change": [],
-    "expected_activation": [
-      "fox-review"
-    ],
-    "rubric": [
-      "Identifies that replacing get_by_id_and_tenant with get_by_id permits cross-tenant invoice access",
-      "Cites service.py or proposed.patch changed line",
-      "Explains tenant IDs may overlap and this crosses authorization boundary",
-      "Suggests retaining tenant-scoped lookup rather than adding speculative layers",
-      "Makes no repository changes"
-    ]
+    "id": "negative-review-fix-request",
+    "kind": "activation",
+    "prompt": "Review the staged authentication change, then fix every verified defect and run regression tests.",
+    "expected_activation": ["fox-review", "fox"]
+  },
+  {
+    "id": "negative-explore-repair",
+    "kind": "activation",
+    "prompt": "Explain why invoice lookup crosses tenants, then repair it and run tests.",
+    "expected_activation": ["fox", "fox-explore"]
   }
 ]
