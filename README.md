@@ -2,13 +2,14 @@
 
 **Better fixes. Clear exploration. Verified reviews.**
 
-Fox is a suite of three independent Agent Skills for AI coding assistants (Google Antigravity, Claude Code, Cursor, and OpenAI Codex):
+Fox is a suite of four independent Agent Skills for AI coding assistants (Google Antigravity, Claude Code, Cursor, and OpenAI Codex):
 
 - **Fox**: Fix what's broken (root-cause debugging and verified repairs).
 - **Fox Explore**: Understand your code (architecture, research, and recommendations).
 - **Fox Review**: Audit an existing change (correctness, risk, tests, and unnecessary complexity).
+- **Fox Fragments**: Route each task to short, self-contained instruction fragments without loading the complete other skills.
 
-Each skill works alone. Install one, any combination, or all three.
+Each skill works alone. Install one, any combination, or all four.
 
 ---
 
@@ -19,7 +20,8 @@ Each skill works alone. Install one, any combination, or all three.
 | **Fox** | **Fix what's broken.**<br>Investigates bugs, identifies root causes, applies focused repairs, and verifies results. | You have a bug to fix, an unexpected test failure, or code to debug. |
 | **Fox Explore** | **Understand your code. Explore what's possible.**<br>Explains unfamiliar code, researches external open-source alternatives, compares architectures, and advises on trade-offs. | You are onboarding to a repository, evaluating an architectural choice, or researching technical options. |
 | **Fox Review** | **Audit what changed.**<br>Reviews a diff, commit, branch, pull request, or named files for verified defects and regression risks without editing code. | You need an independent pre-merge review of an existing change. |
-| **All three** | **Understand, repair, then review.**<br>Each skill keeps its own boundary and can hand work to the next capability when authorized. | You want the complete engineering suite. |
+| **Fox Fragments** | **Load only what is needed.**<br>Maps a request to short repair, boundary, exploration, review and verification fragments. | You want minimal Fox guidance for each task without reading the full specialist skills. |
+| **All four** | **Understand, repair, then review.**<br>Each skill keeps its own boundary and can hand work to the next capability when authorized. | You want the complete engineering suite. |
 
 ---
 
@@ -60,11 +62,14 @@ python3 install.py --agent antigravity --skill fox-explore
 # Install only Fox Review
 python3 install.py --agent antigravity --skill fox-review
 
+# Install only Fox Fragments
+python3 install.py --agent antigravity --skill fox-fragments
+
 # Install a selected combination
 python3 install.py --agent antigravity --skill fox,fox-review
 ```
 
-The legacy `--skill both` alias still installs the original `fox` and `fox-explore` pair. Use `--skill all` for all three skills.
+The legacy `--skill both` alias still installs the original `fox` and `fox-explore` pair. Use `--skill all` for all four skills. To avoid loading full specialist skills, install only `fox-fragments`.
 
 ---
 
@@ -81,7 +86,10 @@ Once installed, start a new chat in your AI coding agent and try one of these be
 ### If You Installed Fox Review
 > "Review the last commit against its requirements. Report only verified correctness, security, regression, test, performance, or complexity findings. Do not edit files."
 
-### If You Installed All Three
+### If You Installed Fox Fragments
+> "Use Fox Fragments to select only the instructions needed to diagnose this API failure."
+
+### If You Installed All Four
 > "Explore the caching design, implement the authorized repair with Fox, then use Fox Review to audit the final diff without editing it."
 
 ### How to Confirm It Loaded
