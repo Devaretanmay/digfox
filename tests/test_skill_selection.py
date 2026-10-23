@@ -29,20 +29,22 @@ class SkillIndependenceInstallationTests(unittest.TestCase):
             "cursor": ".cursor/skills",
         }
         for agent, target in targets.items():
-            for selected, absent in (("fox", "fox-explore"), ("fox-explore", "fox")):
+            for selected in ("fox", "fox-explore", "fox-review"):
                 workspace = self.project / f"{agent}-{selected}"
                 workspace.mkdir()
                 destinations = install.install(agent, workspace, skill=selected)
                 self.assertEqual(destinations, [(workspace / target / selected).resolve()])
                 self.assertTrue((destinations[0] / "SKILL.md").is_file())
-                self.assertFalse((destinations[0].parent / absent).exists())
+                for absent in set(install.AVAILABLE_SKILLS) - {selected}:
+                    self.assertFalse((destinations[0].parent / absent).exists())
 
-    def test_both_aliases_install_exactly_two_skills(self):
+    def test_all_aliases_and_explicit_pair_install_expected_skills(self):
         for selection in ("all", "both", "fox,fox-explore"):
             workspace = self.project / selection.replace(",", "-")
             workspace.mkdir()
             destinations = install.install("codex", workspace, skill=selection)
-            self.assertEqual({path.name for path in destinations}, {"fox", "fox-explore"})
+            expected = set(install.AVAILABLE_SKILLS) if selection in ("all", "both") else {"fox", "fox-explore"}
+            self.assertEqual({path.name for path in destinations}, expected)
 
 
 class SkillIndependentExecutionTests(unittest.TestCase):
@@ -75,6 +77,7 @@ class ActivationContractTests(unittest.TestCase):
         cls.tasks = json.loads((ROOT / "evals/tasks.json").read_text(encoding="utf-8"))
         cls.fox = (ROOT / "skills/fox/SKILL.md").read_text(encoding="utf-8").lower()
         cls.explore = (ROOT / "skills/fox-explore/SKILL.md").read_text(encoding="utf-8").lower()
+        cls.review = (ROOT / "skills/fox-review/SKILL.md").read_text(encoding="utf-8").lower()
 
     def test_positive_and_negative_activation_cases_exist(self):
         labels = [set(task["expected_activation"]) for task in self.tasks]
@@ -82,6 +85,7 @@ class ActivationContractTests(unittest.TestCase):
         self.assertIn({"fox-explore"}, labels)
         self.assertIn({"fox", "fox-explore"}, labels)
         self.assertIn(set(), labels)
+        self.assertIn({"fox-review"}, labels)
 
     def test_descriptions_contain_positive_and_negative_triggers(self):
         self.assertIn("use for", self.fox)
@@ -90,6 +94,10 @@ class ActivationContractTests(unittest.TestCase):
         self.assertIn("do not use", self.explore)
         self.assertIn("trivial edits", self.fox)
         self.assertIn("repair defects", self.explore)
+        self.assertIn("use when", self.review)
+        self.assertIn("do not use", self.review)
+        self.assertIn("pull request", self.review)
+        self.assertIn("read-only", self.review)
 
     def test_activation_cases_reference_only_supported_skills(self):
         supported = set(install.AVAILABLE_SKILLS)
