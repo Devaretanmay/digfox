@@ -16,7 +16,7 @@ AGENTS = {
 }
 ROOT = Path(__file__).resolve().parent
 
-AVAILABLE_SKILLS = ["fox", "fox-explore"]
+AVAILABLE_SKILLS = ["fox", "fox-explore", "fox-review"]
 
 
 def _install_single(
@@ -150,12 +150,15 @@ def print_success_guidance(dests: list[Path], agent: str, skill: str) -> None:
     print("\nCopy-paste example prompts to get started:")
     if skill == "fox":
         print('  "Investigate why this function returns the wrong result. Find the cause, fix it, and verify the change."')
+    elif skill == "fox-review":
+        print('  "Review this pull request for concrete regressions. Cite changed lines and show triggering cases; do not edit code."')
     elif skill == "fox-explore":
         print('  "Explain this repository architecture, trace the request lifecycle, and compare our design with standard practices."')
     else:
         print('  Fox:         "Investigate why this function returns the wrong result. Find the cause, fix it, and verify the change."')
         print('  Fox Explore: "Explain this repository architecture, trace the request flow, and advise on scaling limits."')
-        print('  Combined:    "Explore architectural options, recommend the cleanest approach, and implement the verified fix."')
+        print('  Fox Review:  "Review this patch for regressions and compatibility problems, without editing code."')
+        print('  Combined:    "Explore options, repair the defect, then independently review the patch."')
 
     print("\nHow to verify it loaded:")
     print("  Look for Fox's 4-step workflow (Ground, Trace, Repair, Verify)")
@@ -203,7 +206,8 @@ def run_interactive_wizard() -> int:
     skill_options = [
         ("fox", "Fox: Fix what's broken (root-cause debugging and verified repair)"),
         ("fox-explore", "Fox Explore: Understand your code (architecture, research & recommendations)"),
-        ("all", "Both skills: Complete engineering suite (recommended)"),
+        ("fox-review", "Fox Review: Review changes for concrete defects before merge"),
+        ("all", "All three skills: Complete engineering suite (recommended)"),
     ]
     for idx, (_, label) in enumerate(skill_options, 1):
         print(f"   [{idx}] {label}")
@@ -212,7 +216,7 @@ def run_interactive_wizard() -> int:
     skill_choice = None
     while skill_choice is None:
         try:
-            raw = input("   Select an option [1-3] (default: 3): ").strip()
+            raw = input("   Select an option [1-4] (default: 3): ").strip()
         except (EOFError, KeyboardInterrupt):
             print("\nSetup cancelled.")
             return 1
@@ -227,7 +231,7 @@ def run_interactive_wizard() -> int:
             resolved = []
             valid = True
             for p in parts:
-                if p.isdigit() and 1 <= int(p) <= 2:
+                if p.isdigit() and 1 <= int(p) <= 4 and int(p) != 3:
                     resolved.append(skill_options[int(p) - 1][0])
                 elif p in AVAILABLE_SKILLS:
                     resolved.append(p)
