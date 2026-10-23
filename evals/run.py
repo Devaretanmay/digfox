@@ -24,7 +24,7 @@ def run(command: list[str], cwd: Path, timeout: int = 300) -> subprocess.Complet
 
 
 def install_variant(workspace: Path, variant: str) -> None:
-    names = {"fox": ["fox"], "fox-explore": ["fox-explore"], "both": ["fox", "fox-explore"]}.get(variant, [])
+    names = {"fox": ["fox"], "fox-explore": ["fox-explore"], "both": ["fox", "fox-explore"], "fox-review": ["fox-review"], "all": ["fox", "fox-explore", "fox-review"]}.get(variant, [])
     for agent_dir in (workspace / ".agents/skills", workspace / ".claude/skills"):
         for name in names:
             target = agent_dir / name
@@ -121,7 +121,7 @@ def run_task(task: dict, variant: str, agent_command: str, timeout: int) -> dict
             "tool_calls": tool_calls,
             "input_tokens": input_tokens,
             "output_tokens": output_tokens,
-            "human_review_required": task["kind"] == "explore",
+            "human_review_required": task["kind"] in {"explore", "review"},
             "rubric": task.get("rubric", []),
             "agent_output": agent.stdout[-12000:],
             "agent_error": agent.stderr[-4000:],
@@ -142,13 +142,13 @@ def summarize(records: list[dict]) -> dict:
         "tool_calls": sum(record["tool_calls"] for record in valid if record["tool_calls"] is not None) if any(record["tool_calls"] is not None for record in valid) else None,
         "input_tokens": sum(record["input_tokens"] for record in valid if record["input_tokens"] is not None) if any(record["input_tokens"] is not None for record in valid) else None,
         "output_tokens": sum(record["output_tokens"] for record in valid if record["output_tokens"] is not None) if any(record["output_tokens"] is not None for record in valid) else None,
-        "note": "Usage metrics remain null unless the selected agent emits JSONL with tool or token fields. Exploration quality requires blind human grading against the stored rubric.",
+        "note": "Usage metrics remain null unless the selected agent emits JSONL with tool or token fields. Exploration and review quality require blind human grading against the stored rubric.",
     }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--variant", choices=["baseline", "fox", "fox-explore", "both"], required=True)
+    parser.add_argument("--variant", choices=["baseline", "fox", "fox-explore", "fox-review", "both", "all"], required=True)
     parser.add_argument("--agent-command", help="Command template containing {workspace} and {prompt}")
     parser.add_argument("--task", action="append", help="Task ID; repeat to select multiple tasks")
     parser.add_argument("--output", type=Path, default=Path("eval-results.json"))
@@ -157,7 +157,7 @@ def main() -> int:
     args = parser.parse_args()
 
     tasks = load_tasks()
-    runnable = [task for task in tasks if task["kind"] in {"repair", "explore"}]
+    runnable = [task for task in tasks if task["kind"] in {"repair", "explore", "review"}]
     if args.list:
         for task in tasks:
             print(f"{task['id']}: {task['kind']}")
