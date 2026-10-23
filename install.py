@@ -216,12 +216,12 @@ def run_interactive_wizard() -> int:
     skill_choice = None
     while skill_choice is None:
         try:
-            raw = input("   Select an option [1-4] (default: 3): ").strip()
+            raw = input("   Select an option [1-4] (default: 4): ").strip()
         except (EOFError, KeyboardInterrupt):
             print("\nSetup cancelled.")
             return 1
         if not raw:
-            skill_choice = skill_options[2][0]
+            skill_choice = skill_options[3][0]
             break
         if raw.isdigit() and 1 <= int(raw) <= len(skill_options):
             skill_choice = skill_options[int(raw) - 1][0]
@@ -241,7 +241,7 @@ def run_interactive_wizard() -> int:
             if valid and resolved:
                 skill_choice = ",".join(resolved)
                 break
-        print("   Please enter 1, 2, 3, or a combination like 1,2.")
+        print("   Please enter 1, 2, 3, 4, or a combination like 1,3.")
 
     # Step 3: Location (Project vs Global)
     is_global = False
