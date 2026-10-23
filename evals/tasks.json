@@ -123,5 +123,23 @@
       "fox-review",
       "fox"
     ]
+  },
+  {
+    "id": "review-tenant-regression",
+    "kind": "review",
+    "fixture": "fixtures/review-tenant-guard",
+    "prompt": "Review proposed.patch against service.py and contract.md. Report only concrete introduced defects with location, consequence and smallest safe correction. Do not modify files.",
+    "allowed_changes": [],
+    "must_change": [],
+    "expected_activation": [
+      "fox-review"
+    ],
+    "rubric": [
+      "Identifies that replacing get_by_id_and_tenant with get_by_id permits cross-tenant invoice access",
+      "Cites service.py or proposed.patch changed line",
+      "Explains tenant IDs may overlap and this crosses authorization boundary",
+      "Suggests retaining tenant-scoped lookup rather than adding speculative layers",
+      "Makes no repository changes"
+    ]
   }
 ]
