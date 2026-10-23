@@ -73,10 +73,11 @@ class InstallerOnboardingTests(unittest.TestCase):
             project=self.project_dir,
             skill="all",
         )
-        self.assertEqual(len(dests), 3)
+        self.assertEqual(len(dests), 4)
         self.assertTrue((self.project_dir / ".cursor/skills/fox/SKILL.md").is_file())
         self.assertTrue((self.project_dir / ".cursor/skills/fox-explore/SKILL.md").is_file())
         self.assertTrue((self.project_dir / ".cursor/skills/fox-review/SKILL.md").is_file())
+        self.assertTrue((self.project_dir / ".cursor/skills/fox-fragments/SKILL.md").is_file())
 
     def test_fresh_installation_skill_combination(self):
         dests = install.install(
@@ -123,7 +124,7 @@ class InstallerOnboardingTests(unittest.TestCase):
             skill="all",
             dry_run=True,
         )
-        self.assertEqual(len(dests), 3)
+        self.assertEqual(len(dests), 4)
         self.assertFalse((self.project_dir / ".agents").exists())
 
     def test_non_interactive_without_agent_in_headless_raises_error(self):
@@ -136,7 +137,7 @@ class InstallerOnboardingTests(unittest.TestCase):
 
     def test_interactive_wizard_successful_flow(self):
         # Simulate: Agent 1 (antigravity), Skill 4 (all), Scope 1 (project), Project default
-        inputs = iter(["1", "4", "1", str(self.project_dir)])
+        inputs = iter(["1", "5", "1", str(self.project_dir)])
         with patch("builtins.input", lambda *args: next(inputs)), \
              patch.object(sys.stdin, "isatty", return_value=True), \
              patch.object(sys.stdout, "isatty", return_value=True):
@@ -210,6 +211,7 @@ class InstallerOnboardingTests(unittest.TestCase):
             ROOT / "skills/fox-explore/SKILL.md",
             ROOT / "skills/fox-explore/references/research-playbook.md",
             ROOT / "skills/fox-review/SKILL.md",
+            ROOT / "skills/fox-fragments/SKILL.md",
             ROOT / "skills/fox-review/references/review-playbook.md",
             ROOT / "skills/fox/references/diagnosis.md",
             ROOT / "skills/fox/references/repair.md",
