@@ -5,9 +5,9 @@
 Fox is a suite of two independent Agent Skills for AI coding assistants (Google Antigravity, Claude Code, Cursor, and OpenAI Codex):
 
 - **Fox**: Fix what's broken (root-cause debugging and verified repairs).
-- **Fox Explore**: Understand your code. Explore what's possible (architecture, research, and recommendations).
+- **Fox Explore**: Understand your code (architecture, research, and recommendations).
 
-Each skill works completely on its own with zero dependencies on the other. You can install one or both together.
+Each skill works on its own with no dependency on the other. You can install either skill or both.
 
 ---
 
@@ -17,7 +17,7 @@ Each skill works completely on its own with zero dependencies on the other. You 
 | :--- | :--- | :--- |
 | **Fox** | **Fix what's broken.**<br>Investigates bugs, identifies root causes, applies focused repairs, and verifies results. | You have a bug to fix, an unexpected test failure, or code to debug. |
 | **Fox Explore** | **Understand your code. Explore what's possible.**<br>Explains unfamiliar code, researches external open-source alternatives, compares architectures, and advises on trade-offs. | You are onboarding to a repository, evaluating an architectural choice, or researching technical options. |
-| **Both** | **Understand first. Fix with proof.**<br>Use Fox Explore to evaluate alternatives, then invoke Fox to implement and verify the change. | You are planning a refactor, modernizing legacy modules, or designing clean solutions before coding. |
+| **Both** | **Understand first, then repair with evidence.**<br>Fox Explore maps the system and compares options; Fox implements the authorized repair and verifies the result. | You need architectural analysis followed by an implementation. |
 
 ---
 
@@ -69,7 +69,7 @@ Once installed, start a new chat in your AI coding agent and try one of these be
 > "Explain this repository to someone seeing it for the first time. Walk me through the request flow and explain what you would improve and what you would leave alone."
 
 ### If You Installed Both
-> "Explore architectural alternatives for our caching layer, recommend the cleanest approach, and implement the verified change."
+> "Explore architectural alternatives for our caching layer, recommend the cleanest approach, then implement and verify the authorized change."
 
 ### How to Confirm It Loaded
 - **Fox**: Your agent writes a reproduction test first, traces execution to the owning component, applies a minimal fix, and runs verification checks.
@@ -109,15 +109,15 @@ For step-by-step walkthroughs of real defects and architectural reviews, see the
 Fox guides your agent through four simple steps:
 1. **Ground**: Inspect the code and build the smallest test that demonstrates the problem before touching production files.
 2. **Trace**: Follow the input step-by-step through execution until finding the component that actually owns the behavior.
-3. **Decide and Change**: Make the simplest complete fix at the owning layer. Avoid monkey-patches or wrapper workarounds.
-4. **Verify and Deliver**: Re-run the reproducer, verify edge cases, and run the test suite to prove nothing else broke.
+3. **Repair**: Make the smallest complete change at the owning layer and update every affected caller or contract.
+4. **Verify**: Re-run the reproducer, test a counterexample, run proportionate regressions, and inspect the final diff.
 
 ### Fox Explore Lifecycle
 Fox Explore provides read-only codebase understanding and technical research:
-1. **Understand the question**: Clarify scope and match investigation depth to the question.
-2. **Investigate the evidence**: Inspect repository files, tests, configs, and verified external sources.
-3. **Connect and evaluate**: Relate implementation details to documented practices, separating facts from inference.
-4. **Explain and recommend**: Answer directly, cite exact paths, evaluate trade-offs, and suggest next steps.
+1. **Scope**: Define the question, decision, constraints, and required evidence.
+2. **Map**: Trace the smallest repository and execution flow needed to answer it.
+3. **Compare**: Evaluate the current design, no change, and viable alternatives against consistent criteria.
+4. **Report**: Lead with the answer, cite evidence, separate observed facts from inferences and unknowns, and state what to retain.
 
 ---
 
@@ -166,8 +166,11 @@ python3 skills/fox/scripts/proof.py report cases/auth
 
 - **Skill guidance, not hard constraints**: Skills provide structured reasoning instructions for AI agents. They improve agent consistency, but cannot intercept models that ignore instructions.
 - **Read-only exploration**: Fox Explore is read-only by default and will not modify repository files or scaffold architectures unless explicitly requested.
+- **Behavioral evidence is separate**: Metadata and instruction-contract tests check packaging, not agent reliability. See [behavioral evaluations](evals/README.md) for controlled baseline comparisons.
+- **Current evaluation status**: See [evaluation results](evals/RESULTS.md). Invalid agent runs are excluded rather than counted as failures.
 
 For common errors, reinstallation fixes, and agent setup tips, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
+For the source-backed rationale behind the current instruction and evaluation design, see [upgrade notes](docs/UPGRADE_NOTES.md).
 
 ---
 

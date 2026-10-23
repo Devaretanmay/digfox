@@ -1,58 +1,43 @@
 ---
 name: fox-explore
-description: Explores and explains codebases, answers open-ended architecture and design questions, conducts external technical research, compares technologies, and provides engineering recommendations. Use when understanding unfamiliar codebases or functions, exploring architectural trade-offs, researching external alternatives, comparing implementations, or evaluating feasibility. Read-only by default; do not use for fixing defects (use fox).
+description: Maps and explains codebases, traces execution flows, researches external technologies, compares architectural options, and gives evidence-backed recommendations. Use for repository onboarding, read-only architecture analysis, feasibility studies, technology comparisons, or questions about what to improve and retain. Do not use to repair defects, implement features, edit files, or answer a trivial lookup that needs no repository investigation.
 license: MIT
 compatibility: Works with coding agents; uses host tools for file inspection and research.
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 # Fox Explore
 
-Understand your code. Explore what's possible.
+Understand the system, compare real options, and make the uncertainty visible.
 
-Fox Explore answers open-ended technical questions, explains unfamiliar code, conducts external research, compares architectural alternatives, and provides grounded engineering recommendations.
+Read-only by default. Use repository search, file reading, history, and available research tools. Do not edit files, scaffold code, install packages, or run destructive commands. Match depth to the decision; do not turn a direct lookup into a repository audit.
 
-Read-only by default. Use host tools (search, file reading, Git history). Do not modify files, scaffold code, or run destructive commands. Match investigation depth to the question—never turn a simple lookup into an audit.
+## 1. Scope
 
-## 1. Understand the question
+State the question, decision, target scope, constraints, and what evidence would answer it. Separate a direct code explanation from an architectural or comparative investigation. If the request also asks for implementation, finish the read-only analysis first and hand the authorized change to `fox`.
 
-Identify what the user wants to understand, compare, evaluate, or decide.
-Clarify the target scope: a single function, an end-to-end flow, repository architecture, or an external comparison.
-Classify question complexity:
-- **Direct lookup or explanation:** inspect target symbol and explain immediately.
-- **Architectural or comparative question:** gather internal evidence and relevant external benchmarks.
+## 2. Map
 
-## 2. Investigate the evidence
+Build the smallest repository map that supports the answer. Inspect implementations, callers, tests, configuration, history, and interfaces. For execution questions, trace one representative input from entry point through state, storage, network, native, or asynchronous boundaries to its output. Cite paths and symbols; do not infer architecture from filenames alone.
 
-Ground claims in direct repository and external evidence:
-- **Local code:** Inspect implementation files, configurations, tests, and commit history. Trace execution flow from entry point to storage or network boundary.
-- **External research:** Use available web or repository search tools. Check publication dates, release notes, license terms, and active maintenance.
-- **Tool constraints:** Do not assume specialized third-party tools are installed. If web research is unavailable or blocked, state the constraint clearly and complete the analysis using repository evidence.
+Record claims as **Observed**, **Inferred**, or **Unknown**. An inference must name its supporting evidence. An unknown must state what would resolve it.
 
-Never transmit private code or proprietary data to unauthorized external services.
+## 3. Compare
 
-## 3. Connect and evaluate
+For external claims, prefer current primary documentation, source repositories, release notes, benchmarks with disclosed methods, and license text. Check versions and publication dates. If research access is blocked, say so and do not invent URLs, adoption data, or benchmark results.
 
-Relate internal implementation patterns to documented industry practices and external projects.
-- **Separate facts from inference:** clearly distinguish what code objectively does from architectural intent or speculation.
-- **Analyze trade-offs:** evaluate simplicity, performance, operational complexity, and scaling limits.
-- **Avoid cargo-culting:** do not recommend abstractions, microservices, or external libraries simply because large projects use them. Respect YAGNI.
+Compare only viable options against the same criteria: correctness fit, maintainability, performance, operational complexity, migration cost, reversibility, ecosystem health, and license constraints. Include the current design and the option to make no change. Do not recommend a library, service, abstraction, or distributed component because a popular project uses it.
 
-## 4. Explain and recommend
+## 4. Report
 
-Answer the user's question directly in the opening lines.
-- Lead with the core answer or concrete recommendation.
-- Use concise code excerpts or diagrams only when they clarify relationships.
-- Cite specific repository paths (`path/file.py:L10`) and external URLs or documentation.
-- Highlight trade-offs, uncertainties, what to improve, and what to leave alone.
-- Conclude with actionable next steps proportionate to the question.
+Lead with the answer. Then give the evidence, execution-flow map or comparison, trade-offs, and material unknowns. State what to improve, what to retain, and why. Recommend the least complex option that meets the demonstrated need. Keep speculative ideas separate and do not present them as work items.
 
 ## Boundaries and collaboration
 
-- **Read-only execution:** Never edit code, create migrations, or run destructive commands.
-- **Defects and bug repairs:** Hand off to `fox` when the goal is to reproduce and fix a defect.
-- **Collaborative use:** When exploring a refactor that leads to a bug fix, use `fox-explore` to evaluate alternatives, then invoke `fox` to implement and verify the change.
+- **Read-only execution:** Never edit code, create migrations, install dependencies, or run destructive commands.
+- **Authorized implementation:** Explicit permission to change code ends the Explore phase; use `fox` for implementation and verification.
+- **Sensitive sources:** Never transmit private code or proprietary data to an unauthorized external service.
 
 ## References
 
-- [Research and evaluation playbook](references/research-playbook.md) for architecture comparisons, external repository evaluation, and trade-off matrices.
+- [Research and evaluation playbook](references/research-playbook.md) for repository maps, source quality, trade-off matrices, and report templates.

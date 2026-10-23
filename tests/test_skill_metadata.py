@@ -31,13 +31,13 @@ class SkillMetadataAndIntegrityTests(unittest.TestCase):
         # Check required fields
         self.assertIn("name: fox", frontmatter)
         self.assertIn("description:", frontmatter)
-        self.assertIn('version: "1.1.0"', frontmatter)
+        self.assertIn('version: "1.2.0"', frontmatter)
         self.assertIn("license: MIT", frontmatter)
 
-        # Word count check: aim for 350-500 words
+        # Word count check: concise primary instructions; details live in references
         word_count = len(body.split())
         self.assertGreaterEqual(word_count, 350, f"Body has {word_count} words; expected >= 350")
-        self.assertLessEqual(word_count, 600, f"Body has {word_count} words; expected <= 600")
+        self.assertLessEqual(word_count, 500, f"Body has {word_count} words; expected <= 500")
 
     def test_required_reference_paths_exist(self):
         content = SKILL_MD.read_text(encoding="utf-8")
@@ -136,12 +136,12 @@ class FoxInstructionContractTests(unittest.TestCase):
         # 3. Prefer a complete owning-layer repair over an incomplete wrapper
         self.assertRegex(
             self.content,
-            r"prefer repairing that layer",
+            r"Repair the owning layer",
             "Skill must instruct agents to prefer repairing the owning layer"
         )
         self.assertRegex(
             self.content,
-            r"Do not invent recursive wrappers",
+            r"Do not use recursive wrappers",
             "Skill must forbid inventing recursive wrappers or monkey patches merely to avoid subsystems"
         )
 
@@ -149,7 +149,7 @@ class FoxInstructionContractTests(unittest.TestCase):
         # 4. Treat an unavailable implementation layer as a blocker when necessary
         self.assertRegex(
             self.content,
-            r"explain the blocker and label the result partial or blocked",
+            r"label the result \*\*partial\*\*, \*\*blocked\*\*, or \*\*unverified\*\*",
             "Skill must instruct agents to explain blockers when complete repair is not feasible"
         )
 
@@ -157,7 +157,7 @@ class FoxInstructionContractTests(unittest.TestCase):
         # 5. Verify relevant alternative execution paths
         self.assertRegex(
             self.content,
-            r"alternate public entry points sharing the behavior",
+            r"alternate entry points",
             "Skill must instruct agents to verify alternate public entry points sharing behavior"
         )
 
@@ -165,7 +165,7 @@ class FoxInstructionContractTests(unittest.TestCase):
         # 6. Report incomplete repairs accurately
         self.assertRegex(
             self.content,
-            r"If a relevant execution path remains broken.*label the result partial or blocked, do not mark it complete",
+            r"a relevant path still fails.*Never report it as fixed",
             "Skill must instruct agents not to mark tasks complete if relevant execution paths remain broken"
         )
 

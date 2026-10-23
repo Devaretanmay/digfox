@@ -168,12 +168,17 @@ class InstallerOnboardingTests(unittest.TestCase):
             ROOT / "README.md",
             ROOT / "TROUBLESHOOTING.md",
             ROOT / "examples/ADOPTION_GUIDE.md",
+            ROOT / "docs/UPGRADE_NOTES.md",
+            ROOT / "evals/README.md",
+            ROOT / "evals/RESULTS.md",
             ROOT / "examples/1-fox-alone-localized-defect/README.md",
             ROOT / "examples/2-fox-explore-architecture-review/README.md",
             ROOT / "examples/3-combined-explore-and-repair/README.md",
             ROOT / "skills/fox/SKILL.md",
             ROOT / "skills/fox-explore/SKILL.md",
             ROOT / "skills/fox-explore/references/research-playbook.md",
+            ROOT / "skills/fox/references/diagnosis.md",
+            ROOT / "skills/fox/references/repair.md",
         ]
         link_regex = re.compile(r'\[([^\]]+)\]\(([^)]+)\)')
 

@@ -158,8 +158,8 @@ def print_success_guidance(dests: list[Path], agent: str, skill: str) -> None:
         print('  Combined:    "Explore architectural options, recommend the cleanest approach, and implement the verified fix."')
 
     print("\nHow to verify it loaded:")
-    print("  Look for Fox's 4-step workflow (Ground, Trace, Decide and Change, Verify)")
-    print("  or Fox Explore's 4-stage exploration (Understand, Investigate, Connect, Explain).")
+    print("  Look for Fox's 4-step workflow (Ground, Trace, Repair, Verify)")
+    print("  or Fox Explore's 4-stage exploration (Scope, Map, Compare, Report).")
 
     print("\nIf the agent does not recognize the skill:")
     print("  1. Restart your coding agent session to refresh installed skills.")

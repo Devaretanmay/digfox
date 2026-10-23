@@ -1,6 +1,6 @@
-# Fox & Fox Explore Adoption Guide
+# Fox and Fox Explore Adoption Guide
 
-This guide provides practical examples showing when to use Fox, when to use Fox Explore, or when to use both skills together.
+This guide shows when to use Fox, Fox Explore, or both.
 
 ---
 
@@ -12,7 +12,7 @@ This guide provides practical examples showing when to use Fox, when to use Fox 
 | **Investigate an unfamiliar bug across system boundaries** (CLI to backend, client to server) | **Fox alone** | Traces input through execution to observable output, builds a reproducer, and repairs the owning layer directly. |
 | **Onboard to an unfamiliar repository or component** | **Fox Explore alone** | Explains the request flow, identifies architectural patterns, and provides a clear map of the codebase without editing files. |
 | **Evaluate trade-offs or compare external alternatives** | **Fox Explore alone** | Researches standard open-source libraries and protocols, compares architectural options, and advises on trade-offs. |
-| **Plan an architectural refactor and implement it safely** | **Both (Fox Explore + Fox)** | Fox Explore evaluates alternatives and advises on design trade-offs first; Fox implements the minimal complete fix with verification. |
+| **Plan an architectural refactor and implement it safely** | **Fox Explore + Fox** | Fox Explore evaluates alternatives and advises on design trade-offs first; Fox implements the minimal complete fix with verification. |
 
 ---
 
@@ -128,4 +128,4 @@ Coding agents choose skills based on the terminology in user requests:
 
 1. **To trigger Fox**: Use action words related to diagnosis and repair: `investigate root cause`, `fix defect`, `minimal fix`, `reproduce bug`, `verify regressions`.
 2. **To trigger Fox Explore**: Use words related to understanding and analysis: `explain architecture`, `walk me through`, `explore alternatives`, `compare implementations`, `advise on trade-offs`.
-3. **To trigger Both**: Explicitly ask to evaluate or explore first, followed by implementing and verifying the fix.
+3. **To trigger both**: Explicitly ask for read-only analysis first, followed by an authorized implementation and verification.

@@ -1,0 +1,71 @@
+[
+  {
+    "id": "repair-wrapper-timeout",
+    "kind": "repair",
+    "fixture": "fixtures/wrapper-timeout",
+    "prompt": "A caller passes timeout=0 to disable the transport timeout, but the request still uses the client's default timeout. Find the root cause, make the smallest complete repair, and verify it.",
+    "test_command": ["python3", "-m", "unittest", "-v"],
+    "allowed_changes": ["client.py", "test_client.py"],
+    "must_change": ["client.py"],
+    "expected_activation": ["fox"]
+  },
+  {
+    "id": "repair-tenant-boundary",
+    "kind": "repair",
+    "fixture": "fixtures/tenant-boundary",
+    "prompt": "Invoice lookup sometimes returns another tenant's invoice when numeric IDs overlap. Reproduce the defect, trace the responsible layer, repair every affected caller, and verify regressions.",
+    "test_command": ["python3", "-m", "unittest", "-v"],
+    "allowed_changes": ["repository.py", "service.py", "test_invoices.py"],
+    "must_change": ["repository.py", "service.py"],
+    "expected_activation": ["fox"]
+  },
+  {
+    "id": "explore-request-flow",
+    "kind": "explore",
+    "fixture": "fixtures/architecture",
+    "prompt": "Trace the request flow from submit_report to durable storage. Separate observed facts, supported inferences, and unknowns. Explain what should remain unchanged.",
+    "allowed_changes": [],
+    "must_change": [],
+    "expected_activation": ["fox-explore"],
+    "rubric": [
+      "Cites app.py, jobs.py, and storage.py",
+      "Correctly explains the synchronous queue drain",
+      "Separates observed facts, inferences, and unknowns",
+      "Makes no repository changes"
+    ]
+  },
+  {
+    "id": "explore-storage-comparison",
+    "kind": "explore",
+    "fixture": "fixtures/architecture",
+    "prompt": "Evaluate whether this project should replace SQLite with PostgreSQL. Compare maintainability, performance, operational complexity, migration cost, and the option to keep the current design. Do not edit files.",
+    "allowed_changes": [],
+    "must_change": [],
+    "expected_activation": ["fox-explore"],
+    "rubric": [
+      "Uses repository evidence before recommending a change",
+      "Includes the no-change option",
+      "Covers all requested trade-off criteria",
+      "States missing workload data as unknown",
+      "Makes no repository changes"
+    ]
+  },
+  {
+    "id": "negative-trivial-edit",
+    "kind": "activation",
+    "prompt": "Fix the typo recieve to receive in README.md.",
+    "expected_activation": []
+  },
+  {
+    "id": "negative-feature-build",
+    "kind": "activation",
+    "prompt": "Add CSV export to the reports page. There is no reported defect.",
+    "expected_activation": []
+  },
+  {
+    "id": "negative-explore-repair",
+    "kind": "activation",
+    "prompt": "Explain why invoice lookup crosses tenants, then repair it and run tests.",
+    "expected_activation": ["fox", "fox-explore"]
+  }
+]

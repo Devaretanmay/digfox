@@ -1,4 +1,4 @@
-# Troubleshooting Fox & Fox Explore
+# Troubleshooting Fox and Fox Explore
 
 This guide helps you resolve common issues when installing or using Fox and Fox Explore.
 
@@ -7,7 +7,7 @@ This guide helps you resolve common issues when installing or using Fox and Fox 
 ## 1. My Coding Agent Does Not Recognize the Skill
 
 ### Symptom
-You type `/fox` or prompt your agent, but it responds as if the skill is not installed.
+You type `/fox` or `/fox-explore`, or prompt your agent, but it responds as if the skill is not installed.
 
 ### Solutions
 1. **Restart your coding agent**:
