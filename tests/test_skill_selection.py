@@ -91,6 +91,7 @@ class ActivationContractTests(unittest.TestCase):
         cls.tasks = json.loads((ROOT / "evals/tasks.json").read_text(encoding="utf-8"))
         cls.fox = (ROOT / "skills/fox/SKILL.md").read_text(encoding="utf-8").lower()
         cls.explore = (ROOT / "skills/fox-explore/SKILL.md").read_text(encoding="utf-8").lower()
+        cls.fragments = (ROOT / "skills/fox-fragments/SKILL.md").read_text(encoding="utf-8").lower()
         cls.review = (ROOT / "skills/fox-review/SKILL.md").read_text(encoding="utf-8").lower()
 
     def test_positive_and_negative_activation_cases_exist(self):
