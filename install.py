@@ -231,7 +231,7 @@ def run_interactive_wizard() -> int:
             resolved = []
             valid = True
             for p in parts:
-                if p.isdigit() and 1 <= int(p) <= 4 and int(p) != 3:
+                if p.isdigit() and 1 <= int(p) <= 3:
                     resolved.append(skill_options[int(p) - 1][0])
                 elif p in AVAILABLE_SKILLS:
                     resolved.append(p)
