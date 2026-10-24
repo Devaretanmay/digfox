@@ -38,8 +38,8 @@ class SkillIndependenceInstallationTests(unittest.TestCase):
                 for absent in set(install.AVAILABLE_SKILLS) - {selected}:
                     self.assertFalse((destinations[0].parent / absent).exists())
 
-    def test_all_installs_exactly_three_skills(self):
-        for selection in ("all", "fox,fox-explore,fox-review"):
+    def test_all_and_explicit_complete_selection_install_four_skills(self):
+        for selection in ("all", "fox,fox-explore,fox-review,fox-fragments"):
             workspace = self.project / selection.replace(",", "-")
             workspace.mkdir()
             destinations = install.install("codex", workspace, skill=selection)

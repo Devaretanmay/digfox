@@ -341,7 +341,7 @@ def main(argv=None) -> int:
     p.add_argument(
         "--skill",
         default="fox",
-        help="Skill to install: fox, fox-explore, fox-review, all, both, or comma-separated (default: fox)",
+        help="Skill to install: fox, fox-explore, fox-review, fox-fragments, all, both, or comma-separated (default: fox)",
     )
     p.add_argument(
         "--project",

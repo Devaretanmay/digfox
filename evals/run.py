@@ -28,8 +28,9 @@ def install_variant(workspace: Path, variant: str) -> None:
         "fox": ["fox"],
         "fox-explore": ["fox-explore"],
         "fox-review": ["fox-review"],
+        "fox-fragments": ["fox-fragments"],
         "both": ["fox", "fox-explore"],
-        "all": ["fox", "fox-explore", "fox-review"],
+        "all": ["fox", "fox-explore", "fox-review", "fox-fragments"],
     }.get(variant, [])
     for agent_dir in (workspace / ".agents/skills", workspace / ".claude/skills"):
         for name in names:
@@ -176,7 +177,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--variant",
-        choices=["baseline", "fox", "fox-explore", "fox-review", "both", "all"],
+        choices=["baseline", "fox", "fox-explore", "fox-review", "fox-fragments", "both", "all"],
         required=True,
     )
     parser.add_argument("--agent-command", help="Command template containing {workspace} and {prompt}")
